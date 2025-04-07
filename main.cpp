@@ -13,8 +13,46 @@
 // limitations under the License.
 
 #include <iostream>
+#include <vector>
+#include <string>
+#include "ftxui/component/component.hpp"
+#include "ftxui/component/screen_interactive.hpp"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    // Sample data for the list
+    std::vector<std::string> list_items = {
+        "Channel 1",
+        "Channel 2",
+        "Channel 3",
+        "Channel 4",
+        "Channel 5",
+        "Direct Messages",
+    };
+    
+    int selected_idx = 0;
+    
+    // Left side menu component
+    auto menu = ftxui::Menu(&list_items, &selected_idx, ftxui::MenuOption::Vertical());
+    
+    // Dummy content for the right side
+    auto content = ftxui::Renderer([] {
+        return ftxui::vbox({
+            ftxui::text("Welcome to Discord Social TUI"),
+            ftxui::text("Select a channel from the left panel"),
+            ftxui::separator(),
+            ftxui::paragraph("This area will display the content of the selected channel.")
+        });
+    });
+    
+    // Horizontal layout with a fixed size for the left panel
+    auto container = ftxui::ResizableSplitLeft(
+        menu,
+        content,
+        &selected_idx
+    );
+    
+    auto screen = ftxui::ScreenInteractive::Fullscreen();
+    screen.Loop(container);
+    
     return 0;
 }
