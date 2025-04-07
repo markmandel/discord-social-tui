@@ -19,6 +19,9 @@
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 
+// Width of the left menu
+constexpr int LEFT_WIDTH = 20;
+
 int main() {
   // Sample data for the list
   std::vector<std::string> list_items = {
@@ -60,7 +63,7 @@ int main() {
                                  [&] { return content_container->Render(); });
 
   // Horizontal layout with the constrained menu
-  int left_width = 20;
+  int left_width = LEFT_WIDTH;
   auto container = ftxui::ResizableSplitLeft(menu, content, &left_width);
 
   auto screen = ftxui::ScreenInteractive::Fullscreen();
