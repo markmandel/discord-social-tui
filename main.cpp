@@ -29,10 +29,9 @@ int main() {
         "Direct Messages",
     };
     
-    int selected_idx = 0;
-    
     // Left side menu component
-    auto menu = ftxui::Menu(&list_items, &selected_idx, ftxui::MenuOption::Vertical());
+    int selected_index = 0;
+    auto menu = ftxui::Menu(&list_items, &selected_index, ftxui::MenuOption::Vertical());
     
     // Dummy content for the right side
     auto content = ftxui::Renderer([] {
@@ -43,12 +42,13 @@ int main() {
             ftxui::paragraph("This area will display the content of the selected channel.")
         });
     });
-    
-    // Horizontal layout with a fixed size for the left panel
+
+    // Horizontal layout with the constrained menu
+    int left_width = 20;
     auto container = ftxui::ResizableSplitLeft(
         menu,
         content,
-        &selected_idx
+        &left_width
     );
     
     auto screen = ftxui::ScreenInteractive::Fullscreen();
