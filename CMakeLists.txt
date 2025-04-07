@@ -13,8 +13,38 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.30)
-project(discord_social_tui)
+project(discord_social_tui
+        VERSION 0.1.0
+        DESCRIPTION "Terminal UI for Discord social features"
+        LANGUAGES CXX)
 
+# C++ settings
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(discord_social_tui main.cpp)
+# Dependencies
+include(FetchContent)
+
+FetchContent_Declare(
+        ftxui
+        GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+        GIT_TAG v6.0.2
+)
+
+FetchContent_MakeAvailable(ftxui)
+
+# Executable
+add_executable(${PROJECT_NAME} main.cpp)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        ftxui::screen
+        ftxui::dom
+        ftxui::component
+)
+
+# Install
+include(GNUInstallDirs)
+install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
