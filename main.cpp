@@ -75,5 +75,5 @@ int main() {
     auto screen = ftxui::ScreenInteractive::Fullscreen();
     screen.Loop(container);
     
-    return 0;
+    return EXIT_SUCCESS;
 }
