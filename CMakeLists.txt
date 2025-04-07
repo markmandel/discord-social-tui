@@ -48,3 +48,48 @@ include(GNUInstallDirs)
 install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+# Custom target for doing formatting and linting
+
+# Find all source files
+file(GLOB_RECURSE SOURCE_FILES 
+     ${CMAKE_SOURCE_DIR}/*.cpp
+     ${CMAKE_SOURCE_DIR}/*.hpp
+     ${CMAKE_SOURCE_DIR}/*.h)
+
+# Add lint target for running clang-format and clang-tidy
+find_program(CLANG_FORMAT clang-format)
+find_program(CLANG_TIDY clang-tidy)
+
+set(TIDY_CHECKS "-checks=bugprone-*,cppcoreguidelines-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type,-readability-magic-numbers")
+
+if(CLANG_FORMAT AND CLANG_TIDY)
+    add_custom_target(lint
+        COMMAND ${CMAKE_COMMAND} -E echo "Running clang-format on source files..."
+        COMMAND ${CLANG_FORMAT} -i ${SOURCE_FILES}
+        COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy on source files..."
+        COMMAND ${CLANG_TIDY} ${TIDY_CHECKS} ${CMAKE_SOURCE_DIR}/main.cpp -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include
+        COMMENT "Running code quality tools"
+        VERBATIM
+    )
+elseif(CLANG_FORMAT)
+    add_custom_target(lint
+        COMMAND ${CLANG_FORMAT} -i ${SOURCE_FILES}
+        COMMAND ${CMAKE_COMMAND} -E echo "clang-tidy not found. Only formatting was performed."
+        COMMENT "Running clang-format only"
+        VERBATIM
+    )
+elseif(CLANG_TIDY)
+    add_custom_target(lint
+        COMMAND ${CMAKE_COMMAND} -E echo "clang-format not found. Only linting was performed."
+        COMMAND ${CLANG_TIDY} ${TIDY_CHECKS} ${CMAKE_SOURCE_DIR}/main.cpp -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include
+        COMMENT "Running clang-tidy only"
+        VERBATIM
+    )
+else()
+    add_custom_target(lint
+        COMMAND ${CMAKE_COMMAND} -E echo "Neither clang-format nor clang-tidy found. Please install these tools to enable the lint target."
+        COMMENT "Code quality tools not found"
+        VERBATIM
+    )
+endif()
