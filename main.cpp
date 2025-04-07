@@ -25,7 +25,7 @@ constexpr int LEFT_WIDTH = 20;
 int main() {
   // Sample data for the list
   std::vector<std::string> list_items = {
-      "👋 Jane", "👋 Alex", "👋 Amy", "💤 Daria", "💤 Greg",
+      "👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg",
   };
 
   // Left side menu component
