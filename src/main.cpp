@@ -13,6 +13,10 @@
 // limitations under the License.
 
 #define DISCORDPP_IMPLEMENTATION
+#include <spdlog/cfg/env.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <optional>
@@ -68,7 +72,37 @@ void PrintUsage(const std::string& program_name) {
   std::cerr << "   DISCORD_APPLICATION_ID: Discord application ID" << '\n';
 }
 
+bool ConfigureLogging() {
+  try {
+    // Create a file sink
+    auto file_sink =
+        std::make_shared<spdlog::sinks::basic_file_sink_mt>("log", true);
+
+    // Create logger with file sink
+    auto logger = std::make_shared<spdlog::logger>("logger", file_sink);
+
+    // Set as default logger
+    spdlog::set_default_logger(logger);
+
+    // Load log levels from environment variables
+    // Sets log level based on SPDLOG_LEVEL environment variable
+    spdlog::cfg::load_env_levels();
+
+    // Log initialization message
+    spdlog::info("Logging initialized");
+    return true;
+  } catch (const spdlog::spdlog_ex& ex) {
+    std::cerr << "Log initialization failed: " << ex.what() << '\n';
+    return false;
+  }
+}
+
 int main(int argc, char* argv[]) {
+  // Set up logging first
+  if (!ConfigureLogging()) {
+    return EXIT_FAILURE;
+  }
+
   // Convert C-style arguments to a vector
   std::vector<std::string> args(argv, argv + argc);
 
@@ -81,6 +115,9 @@ int main(int argc, char* argv[]) {
     PrintUsage(args[0]);
     return EXIT_FAILURE;
   }
+
+  // Log the application ID
+  spdlog::info("Starting with application ID: {}", *application_id);
 
   // Create Discord client
   const auto client = std::make_shared<discordpp::Client>();

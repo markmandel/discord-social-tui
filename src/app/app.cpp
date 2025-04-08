@@ -14,6 +14,8 @@
 
 #include "app/app.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <iostream>
 #include <utility>
 
@@ -35,7 +37,8 @@ App::App(std::string application_id, std::shared_ptr<discordpp::Client> client)
       screen_{ftxui::ScreenInteractive::Fullscreen()},
       show_loading_modal_{false} {
   // Log the application ID
-  std::cout << "Discord Application ID: " << application_id_ << '\n';
+  spdlog::debug("App initialized with Discord Application ID: {}",
+                application_id_);
   // Left side menu component
   menu_ = ftxui::Menu(&list_items_, &selected_index_,
                       ftxui::MenuOption::Vertical());
