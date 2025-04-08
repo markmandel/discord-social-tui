@@ -35,13 +35,22 @@ endif ()
 # Dependencies
 include(FetchContent)
 
+# FTXUI for terminal UI
 FetchContent_Declare(
         ftxui
         GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
         GIT_TAG v6.0.2
 )
 
-FetchContent_MakeAvailable(ftxui)
+# spdlog for logging
+FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.15.2  # Using the latest stable version
+)
+
+# Make dependencies available
+FetchContent_MakeAvailable(ftxui spdlog)
 
 # Discord Social SDK
 set(DISCORD_SDK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/discord_social_sdk)
@@ -75,6 +84,7 @@ target_link_libraries(${PROJECT_NAME}_lib PUBLIC
         ftxui::dom
         ftxui::component
         ${DISCORD_LIB_PATH}
+        spdlog::spdlog
 )
 
 # Executable
