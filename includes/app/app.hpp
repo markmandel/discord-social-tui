@@ -14,9 +14,11 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "discordpp.h"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 
@@ -24,8 +26,9 @@ namespace discord_social_tui {
 
 class App {
  public:
-  // Constructor with application ID
-  App(const std::string& application_id);
+  // Constructor with application ID and client
+  App(const std::string& application_id,
+      std::shared_ptr<discordpp::Client> client);
 
   // Run the application
   int Run();
@@ -39,7 +42,10 @@ class App {
 
   // Application configuration
   std::string application_id_;
-  
+
+  // Discord client
+  std::shared_ptr<discordpp::Client> client_;
+
   // Components
   int selected_index_;
   bool profile_selected_;

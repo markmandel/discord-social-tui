@@ -19,8 +19,10 @@
 namespace discord_social_tui {
 
 // Constructor for the App class
-App::App(const std::string& application_id)
+App::App(const std::string& application_id,
+         std::shared_ptr<discordpp::Client> client)
     : application_id_{application_id},
+      client_{client},
       list_items_{"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"},
       selected_index_{0},
       profile_selected_{false},
