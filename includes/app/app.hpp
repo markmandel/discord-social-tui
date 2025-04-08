@@ -56,6 +56,9 @@ class App {
   ftxui::Component content_container_;
   ftxui::Component container_;
   ftxui::ScreenInteractive screen_;
+  bool show_loading_modal_;
+
+  ftxui::Component LoadingModal(const ftxui::Component &main) const;
 };
 
 }  // namespace discord_social_tui

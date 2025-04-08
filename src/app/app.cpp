@@ -17,6 +17,8 @@
 #include <iostream>
 #include <utility>
 
+#include "ftxui/dom/elements.hpp"
+
 namespace discord_social_tui {
 
 // Constructor for the App class
@@ -29,6 +31,7 @@ App::App(std::string application_id, std::shared_ptr<discordpp::Client> client)
       dm_selected_{false},
       voice_selected_{false},
       left_width_{LEFT_WIDTH},
+      show_loading_modal_{false},
       screen_{ftxui::ScreenInteractive::Fullscreen()} {
   // Log the application ID
   std::cout << "Discord Application ID: " << application_id_ << '\n';
@@ -63,10 +66,30 @@ App::App(std::string application_id, std::shared_ptr<discordpp::Client> client)
 
   // Horizontal layout with the constrained menu
   container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width_);
+  // Wrap main container with loading modal
+  container_ = LoadingModal(container_);
+}
+
+ftxui::Component App::LoadingModal(const ftxui::Component &main) const {
+  // Create a simple loading message with a border
+  auto loading_content = ftxui::Renderer([] {
+    return ftxui::vbox({ftxui::text("🔗 Authenticating...") | ftxui::center}) |
+           ftxui::vcenter |
+           ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 100) |
+           ftxui::size(ftxui::HEIGHT, ftxui::GREATER_THAN, 30) | ftxui::center |
+           ftxui::border;
+  });
+
+  // Modal component
+  return ftxui::Modal(main, loading_content, &show_loading_modal_);
 }
 
 // Run the application
 int App::Run() {
+  // For testing - enable the loading modal
+  show_loading_modal_ = true;
+
+  // Run the application loop
   screen_.Loop(container_);
   return EXIT_SUCCESS;
 }

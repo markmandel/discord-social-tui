@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
   std::vector<std::string> args(argv, argv + argc);
 
   // Parse application ID from command line or environment
-  auto application_id = ParseApplicationId(args);
+  const auto application_id = ParseApplicationId(args);
 
   // Check if application ID is provided
   if (!application_id) {
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Create Discord client
-  auto client = std::make_shared<discordpp::Client>();
+  const auto client = std::make_shared<discordpp::Client>();
 
   // Create and run application
   discord_social_tui::App app(*application_id, client);
