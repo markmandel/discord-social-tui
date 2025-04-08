@@ -17,6 +17,7 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "app/app.hpp"
 #include "discordpp.h"
@@ -31,20 +32,24 @@ std::optional<std::string> GetEnv(const std::string& var_name) {
 }
 
 // Parse application ID from command line arguments and environment variables
-std::optional<std::string> ParseApplicationId(int argc, char* argv[]) {
+std::optional<std::string> ParseApplicationId(
+    const std::vector<std::string>& args) {
+  static constexpr size_t PREFIX_LENGTH = 17;  // Length of "--application-id="
+
   // Check command-line arguments first
   // Format: --application-id=YOUR_APP_ID or -a YOUR_APP_ID
-  for (int i = 1; i < argc; ++i) {
-    std::string arg = argv[i];
+  for (size_t i = 1; i < args.size(); ++i) {
+    const std::string& arg = args[i];
 
     if (arg.starts_with("--application-id=")) {
       // --application-id=value format
-      return arg.substr(17);
+      return arg.substr(PREFIX_LENGTH);
     }
     if (arg == "--application-id" || arg == "-a") {
       // --application-id value or -a value format
-      if (i + 1 < argc) {
-        return std::string(argv[++i]);  // Move to next argument for the value
+      if (i + 1 < args.size()) {
+        ++i;             // Move to next argument
+        return args[i];  // Return the next argument as the value
       }
     }
   }
@@ -64,13 +69,16 @@ void PrintUsage(const std::string& program_name) {
 }
 
 int main(int argc, char* argv[]) {
+  // Convert C-style arguments to a vector
+  std::vector<std::string> args(argv, argv + argc);
+
   // Parse application ID from command line or environment
-  auto application_id = ParseApplicationId(argc, argv);
+  auto application_id = ParseApplicationId(args);
 
   // Check if application ID is provided
   if (!application_id) {
     std::cerr << "Error: Discord Application ID is required." << '\n';
-    PrintUsage(argv[0]);
+    PrintUsage(args[0]);
     return EXIT_FAILURE;
   }
 
