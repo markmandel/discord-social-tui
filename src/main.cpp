@@ -24,7 +24,7 @@
 // Get environment variable
 std::optional<std::string> GetEnv(const std::string& var_name) {
   const char* value = std::getenv(var_name.c_str());
-  if (value) {
+  if (value != nullptr) {
     return std::string(value);
   }
   return std::nullopt;
@@ -37,10 +37,11 @@ std::optional<std::string> ParseApplicationId(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
 
-    if (arg.find("--application-id=") == 0) {
+    if (arg.starts_with("--application-id=")) {
       // --application-id=value format
       return arg.substr(17);
-    } else if (arg == "--application-id" || arg == "-a") {
+    }
+    if (arg == "--application-id" || arg == "-a") {
       // --application-id value or -a value format
       if (i + 1 < argc) {
         return std::string(argv[++i]);  // Move to next argument for the value
@@ -55,11 +56,11 @@ std::optional<std::string> ParseApplicationId(int argc, char* argv[]) {
 // Show usage information
 void PrintUsage(const std::string& program_name) {
   std::cerr << "Usage: " << program_name << " --application-id=YOUR_APP_ID"
-            << std::endl;
-  std::cerr << "   or: " << program_name << " -a YOUR_APP_ID" << std::endl;
-  std::cerr << std::endl;
-  std::cerr << "Environment Variables:" << std::endl;
-  std::cerr << "   DISCORD_APPLICATION_ID: Discord application ID" << std::endl;
+            << '\n';
+  std::cerr << "   or: " << program_name << " -a YOUR_APP_ID" << '\n';
+  std::cerr << '\n';
+  std::cerr << "Environment Variables:" << '\n';
+  std::cerr << "   DISCORD_APPLICATION_ID: Discord application ID" << '\n';
 }
 
 int main(int argc, char* argv[]) {
@@ -68,7 +69,7 @@ int main(int argc, char* argv[]) {
 
   // Check if application ID is provided
   if (!application_id) {
-    std::cerr << "Error: Discord Application ID is required." << std::endl;
+    std::cerr << "Error: Discord Application ID is required." << '\n';
     PrintUsage(argv[0]);
     return EXIT_FAILURE;
   }

@@ -15,6 +15,7 @@
 #include "app/app.hpp"
 
 #include <iostream>
+#include <utility>
 
 namespace discord_social_tui {
 
@@ -22,7 +23,7 @@ namespace discord_social_tui {
 App::App(const std::string& application_id,
          std::shared_ptr<discordpp::Client> client)
     : application_id_{application_id},
-      client_{client},
+      client_{std::move(client)},
       list_items_{"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"},
       selected_index_{0},
       profile_selected_{false},
@@ -31,7 +32,7 @@ App::App(const std::string& application_id,
       left_width_{LEFT_WIDTH},
       screen_{ftxui::ScreenInteractive::Fullscreen()} {
   // Log the application ID
-  std::cout << "Discord Application ID: " << application_id_ << std::endl;
+  std::cout << "Discord Application ID: " << application_id_ << '\n';
   // Left side menu component
   menu_ = ftxui::Menu(&list_items_, &selected_index_,
                       ftxui::MenuOption::Vertical());
