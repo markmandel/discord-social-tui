@@ -27,8 +27,7 @@ namespace discord_social_tui {
 class App {
  public:
   // Constructor with application ID and client
-  App(const std::string& application_id,
-      std::shared_ptr<discordpp::Client> client);
+  App(std::string application_id, std::shared_ptr<discordpp::Client> client);
 
   // Run the application
   int Run();
