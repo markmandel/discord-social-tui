@@ -21,6 +21,9 @@ CLAUDE.md
 /cmake-build-debug
 /build
 
+# Download the Social SDK: https://discord.com/developers/docs/discord-social-sdk/overview
+/lib/discord_social_sdk/
+
 ### C++ template
 # Prerequisites
 *.d
@@ -54,4 +57,3 @@ CLAUDE.md
 *.exe
 *.out
 *.app
-
