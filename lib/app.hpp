@@ -14,11 +14,39 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
+#include "ftxui/component/component.hpp"
+#include "ftxui/component/screen_interactive.hpp"
+
 namespace discord_social_tui {
 
 class App {
  public:
   App();
+
+  // Run the application
+  int Run();
+
+ private:
+  // Width of the left menu
+  static constexpr int LEFT_WIDTH = 20;
+
+  // Sample data for the list
+  std::vector<std::string> list_items_;
+
+  // Components
+  int selected_index_;
+  bool profile_selected_;
+  bool dm_selected_;
+  bool voice_selected_;
+  int left_width_;
+
+  ftxui::Component menu_;
+  ftxui::Component content_container_;
+  ftxui::Component container_;
+  ftxui::ScreenInteractive screen_;
 };
 
 }  // namespace discord_social_tui

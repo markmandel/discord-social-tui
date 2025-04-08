@@ -43,6 +43,12 @@ target_include_directories(${PROJECT_NAME}_lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/lib
 )
 
+target_link_libraries(${PROJECT_NAME}_lib PUBLIC
+        ftxui::screen
+        ftxui::dom
+        ftxui::component
+)
+
 # Executable
 add_executable(${PROJECT_NAME} main.cpp)
 
