@@ -36,11 +36,11 @@ FetchContent_MakeAvailable(ftxui)
 
 # Library 
 add_library(${PROJECT_NAME}_lib 
-        lib/app.cpp
+        src/app/app.cpp
 )
 
 target_include_directories(${PROJECT_NAME}_lib PUBLIC 
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/includes
 )
 
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC
@@ -50,13 +50,10 @@ target_link_libraries(${PROJECT_NAME}_lib PUBLIC
 )
 
 # Executable
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         ${PROJECT_NAME}_lib
-        ftxui::screen
-        ftxui::dom
-        ftxui::component
 )
 
 # Install
@@ -69,9 +66,9 @@ install(TARGETS ${PROJECT_NAME}
 
 # Find all source files
 file(GLOB_RECURSE SOURCE_FILES 
-     ${CMAKE_SOURCE_DIR}/*.cpp
-     ${CMAKE_SOURCE_DIR}/*.hpp
-     ${CMAKE_SOURCE_DIR}/*.h)
+     ${CMAKE_SOURCE_DIR}/src/*.cpp
+     ${CMAKE_SOURCE_DIR}/includes/*.hpp
+     ${CMAKE_SOURCE_DIR}/includes/*.h)
 
 # Add lint target for running clang-format and clang-tidy
 find_program(CLANG_FORMAT clang-format)
@@ -84,7 +81,7 @@ if(CLANG_FORMAT AND CLANG_TIDY)
         COMMAND ${CMAKE_COMMAND} -E echo "Running clang-format on source files..."
         COMMAND ${CLANG_FORMAT} -i ${SOURCE_FILES}
         COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy on source files..."
-        COMMAND ${CLANG_TIDY} ${TIDY_CHECKS} ${CMAKE_SOURCE_DIR}/main.cpp -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include
+        COMMAND ${CLANG_TIDY} ${TIDY_CHECKS} ${CMAKE_SOURCE_DIR}/src/main.cpp ${CMAKE_SOURCE_DIR}/src/app/app.cpp -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/includes
         COMMENT "Running code quality tools"
         VERBATIM
     )
@@ -98,7 +95,7 @@ elseif(CLANG_FORMAT)
 elseif(CLANG_TIDY)
     add_custom_target(lint
         COMMAND ${CMAKE_COMMAND} -E echo "clang-format not found. Only linting was performed."
-        COMMAND ${CLANG_TIDY} ${TIDY_CHECKS} ${CMAKE_SOURCE_DIR}/main.cpp -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include
+        COMMAND ${CLANG_TIDY} ${TIDY_CHECKS} ${CMAKE_SOURCE_DIR}/src/main.cpp ${CMAKE_SOURCE_DIR}/src/app/app.cpp -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/includes
         COMMENT "Running clang-tidy only"
         VERBATIM
     )

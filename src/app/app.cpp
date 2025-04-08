@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "app.hpp"
+#include "app/app.hpp"
 
 #include <iostream>
 
 namespace discord_social_tui {
 
+// Constructor for the App class
 App::App()
     : list_items_{"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"},
       selected_index_{0},
@@ -59,6 +60,7 @@ App::App()
   container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width_);
 }
 
+// Run the application
 int App::Run() {
   screen_.Loop(container_);
   return EXIT_SUCCESS;

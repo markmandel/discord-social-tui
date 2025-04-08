@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "lib/app.hpp"
+#include "app/app.hpp"
 
 int main() {
   discord_social_tui::App app;
