@@ -19,14 +19,17 @@
 namespace discord_social_tui {
 
 // Constructor for the App class
-App::App()
-    : list_items_{"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"},
+App::App(const std::string& application_id)
+    : application_id_{application_id},
+      list_items_{"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"},
       selected_index_{0},
       profile_selected_{false},
       dm_selected_{false},
       voice_selected_{false},
       left_width_{LEFT_WIDTH},
       screen_{ftxui::ScreenInteractive::Fullscreen()} {
+  // Log the application ID
+  std::cout << "Discord Application ID: " << application_id_ << std::endl;
   // Left side menu component
   menu_ = ftxui::Menu(&list_items_, &selected_index_,
                       ftxui::MenuOption::Vertical());

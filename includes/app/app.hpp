@@ -24,7 +24,8 @@ namespace discord_social_tui {
 
 class App {
  public:
-  App();
+  // Constructor with application ID
+  App(const std::string& application_id);
 
   // Run the application
   int Run();
@@ -36,6 +37,9 @@ class App {
   // Sample data for the list
   std::vector<std::string> list_items_;
 
+  // Application configuration
+  std::string application_id_;
+  
   // Components
   int selected_index_;
   bool profile_selected_;
