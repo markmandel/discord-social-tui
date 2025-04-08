@@ -81,7 +81,7 @@ if(CLANG_FORMAT AND CLANG_TIDY)
         COMMAND ${CMAKE_COMMAND} -E echo "Running clang-format on source files..."
         COMMAND ${CLANG_FORMAT} -i ${SOURCE_FILES}
         COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy on source files..."
-        COMMAND ${CLANG_TIDY} ${TIDY_CHECKS} ${CMAKE_SOURCE_DIR}/src/main.cpp ${CMAKE_SOURCE_DIR}/src/app/app.cpp -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/includes
+        COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CLANG_TIDY} ${TIDY_CHECKS} ${SOURCE_FILES} -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/includes
         COMMENT "Running code quality tools"
         VERBATIM
     )
@@ -95,7 +95,7 @@ elseif(CLANG_FORMAT)
 elseif(CLANG_TIDY)
     add_custom_target(lint
         COMMAND ${CMAKE_COMMAND} -E echo "clang-format not found. Only linting was performed."
-        COMMAND ${CLANG_TIDY} ${TIDY_CHECKS} ${CMAKE_SOURCE_DIR}/src/main.cpp ${CMAKE_SOURCE_DIR}/src/app/app.cpp -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/includes
+        COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CLANG_TIDY} ${TIDY_CHECKS} ${SOURCE_FILES} -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/includes
         COMMENT "Running clang-tidy only"
         VERBATIM
     )
