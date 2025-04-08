@@ -34,10 +34,20 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(ftxui)
 
+# Library 
+add_library(${PROJECT_NAME}_lib 
+        lib/app.cpp
+)
+
+target_include_directories(${PROJECT_NAME}_lib PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib
+)
+
 # Executable
 add_executable(${PROJECT_NAME} main.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${PROJECT_NAME}_lib
         ftxui::screen
         ftxui::dom
         ftxui::component

@@ -15,6 +15,7 @@
 .*
 !.gitignore
 !.clang-format
+CLAUDE.md
 
 # common build directories
 /cmake-build-debug
