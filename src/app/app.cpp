@@ -17,22 +17,23 @@
 #include <iostream>
 #include <utility>
 
+#include "ftxui/component/loop.hpp"
 #include "ftxui/dom/elements.hpp"
 
 namespace discord_social_tui {
 
 // Constructor for the App class
 App::App(std::string application_id, std::shared_ptr<discordpp::Client> client)
-    : application_id_{std::move(application_id)},
+    : list_items_{"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"},
+      application_id_{std::move(application_id)},
       client_{std::move(client)},
-      list_items_{"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"},
       selected_index_{0},
       profile_selected_{false},
       dm_selected_{false},
       voice_selected_{false},
       left_width_{LEFT_WIDTH},
-      show_loading_modal_{false},
-      screen_{ftxui::ScreenInteractive::Fullscreen()} {
+      screen_{ftxui::ScreenInteractive::Fullscreen()},
+      show_loading_modal_{false} {
   // Log the application ID
   std::cout << "Discord Application ID: " << application_id_ << '\n';
   // Left side menu component
@@ -89,11 +90,19 @@ ftxui::Component App::AuthenticatingModal(const ftxui::Component &main) const {
 
 // Run the application
 int App::Run() {
+  constexpr int SLEEP_MILLISECONDS = 10;
+
   // For testing - enable the loading modal
   show_loading_modal_ = true;
 
   // Run the application loop
-  screen_.Loop(container_);
+  ftxui::Loop loop(&screen_, container_);
+  while (!loop.HasQuitted()) {
+    loop.RunOnce();
+    discordpp::RunCallbacks();
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_MILLISECONDS));
+  }
+
   return EXIT_SUCCESS;
 }
 
