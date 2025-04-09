@@ -73,6 +73,8 @@ void PrintUsage(const std::string& program_name) {
 }
 
 bool ConfigureLogger() {
+  constexpr int FLUSH_INTERVAL = 2;
+
   try {
     // Create a file sink
     auto file_sink =
@@ -83,8 +85,8 @@ bool ConfigureLogger() {
 
     // Set as default logger
     spdlog::set_default_logger(logger);
+    spdlog::flush_every(std::chrono::seconds(FLUSH_INTERVAL));
 
-    // Load log levels from environment variables
     // Sets log level based on SPDLOG_LEVEL environment variable
     spdlog::cfg::load_env_levels();
 
