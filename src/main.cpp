@@ -72,7 +72,7 @@ void PrintUsage(const std::string& program_name) {
   std::cerr << "   DISCORD_APPLICATION_ID: Discord application ID" << '\n';
 }
 
-bool ConfigureLogging() {
+bool ConfigureLogger() {
   try {
     // Create a file sink
     auto file_sink =
@@ -97,9 +97,33 @@ bool ConfigureLogging() {
   }
 }
 
+void ConfigureDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
+  client->AddLogCallback(
+      [](const std::string& message,
+         const discordpp::LoggingSeverity severity) {
+        switch (severity) {
+          case discordpp::LoggingSeverity::Verbose:
+            spdlog::log(spdlog::level::trace, message);
+            break;
+          case discordpp::LoggingSeverity::Info:
+            spdlog::log(spdlog::level::info, message);
+            break;
+          case discordpp::LoggingSeverity::Warning:
+            spdlog::log(spdlog::level::warn, message);
+            break;
+          case discordpp::LoggingSeverity::Error:
+            spdlog::log(spdlog::level::err, message);
+            break;
+          case discordpp::LoggingSeverity::None:
+            break;
+        }
+      },
+      discordpp::LoggingSeverity::Info);
+}
+
 int main(int argc, char* argv[]) {
   // Set up logging first
-  if (!ConfigureLogging()) {
+  if (!ConfigureLogger()) {
     return EXIT_FAILURE;
   }
 
@@ -121,6 +145,7 @@ int main(int argc, char* argv[]) {
 
   // Create Discord client
   const auto client = std::make_shared<discordpp::Client>();
+  ConfigureDiscordLogging(client);
 
   // Create and run application
   discord_social_tui::App app(*application_id, client);
