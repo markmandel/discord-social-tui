@@ -61,6 +61,7 @@ class App {
   [[nodiscard]] ftxui::Component AuthenticatingModal(
       const ftxui::Component &main) const;
   void StartStatusChangedCallback();
+  void Init();
 };
 
 }  // namespace discord_social_tui

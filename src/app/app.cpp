@@ -104,10 +104,15 @@ void App::StartStatusChangedCallback() {
     }
 
     if (status == discordpp::Client::Status::Ready) {
-      // hide the modal.
-      show_authenticating_modal_ = false;
+      Init();
     }
   });
+}
+
+// Function to set up the application once we're authenticated.
+void App::Init() {
+  // hide the modal.
+  show_authenticating_modal_ = false;
 }
 
 // Run the application
