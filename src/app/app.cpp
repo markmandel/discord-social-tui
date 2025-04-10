@@ -144,11 +144,14 @@ void App::Authorize() {
     // Exchange auth code for access token
     client_->GetToken(
         application_id_, code, code_verifier.Verifier(), redirect_uri,
-        [this](const discordpp::ClientResult& result,
-               const std::string& access_token,
-               const std::string& refresh_token,
-               discordpp::AuthorizationTokenType token_type, int32_t expires_in,
-               const std::string& scope) {
+        [this](
+            const discordpp::ClientResult& result,
+            const std::string&  // NOLINT(bugprone-easily-swappable-parameters)
+                access_token,
+            const std::string&  // NOLINT(bugprone-easily-swappable-parameters)
+                refresh_token,
+            discordpp::AuthorizationTokenType token_type, int32_t expires_in,
+            const std::string& scope) {
           if (!result.Successful()) {
             spdlog::error("Token exchange failed: {}", result.Error());
             return;
