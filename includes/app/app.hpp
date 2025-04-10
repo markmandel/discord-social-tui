@@ -56,10 +56,11 @@ class App {
   ftxui::Component content_container_;
   ftxui::Component container_;
   ftxui::ScreenInteractive screen_;
-  bool show_loading_modal_;
+  bool show_authenticating_modal_;
 
   [[nodiscard]] ftxui::Component AuthenticatingModal(
       const ftxui::Component &main) const;
+  void StartStatusChangedCallback();
 };
 
 }  // namespace discord_social_tui

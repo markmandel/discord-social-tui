@@ -35,7 +35,7 @@ App::App(std::string application_id, std::shared_ptr<discordpp::Client> client)
       voice_selected_{false},
       left_width_{LEFT_WIDTH},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
-      show_loading_modal_{false} {
+      show_authenticating_modal_{false} {
   // Log the application ID
   spdlog::debug("App initialized with Discord Application ID: {}",
                 application_id_);
@@ -88,7 +88,26 @@ ftxui::Component App::AuthenticatingModal(const ftxui::Component &main) const {
   });
 
   // Modal component
-  return ftxui::Modal(main, loading_content, &show_loading_modal_);
+  return ftxui::Modal(main, loading_content, &show_authenticating_modal_);
+}
+
+void App::StartStatusChangedCallback() {
+  client_->SetStatusChangedCallback([&](const discordpp::Client::Status status,
+                                        const discordpp::Client::Error error,
+                                        int32_t errorDetail) {
+    spdlog::debug("Social SDK Status Change: {}",
+                  discordpp::Client::StatusToString(status));
+
+    if (error != discordpp::Client::Error::None) {
+      spdlog::error("Social SDK Status Error: {}, Details: {}",
+                    discordpp::Client::ErrorToString(error), errorDetail);
+    }
+
+    if (status == discordpp::Client::Status::Ready) {
+      // hide the modal.
+      show_authenticating_modal_ = false;
+    }
+  });
 }
 
 // Run the application
@@ -96,7 +115,8 @@ int App::Run() {
   constexpr int SLEEP_MILLISECONDS = 10;
 
   // For testing - enable the loading modal
-  show_loading_modal_ = true;
+  show_authenticating_modal_ = true;
+  StartStatusChangedCallback();
 
   // Run the application loop
   ftxui::Loop loop(&screen_, container_);
