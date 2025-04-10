@@ -47,12 +47,12 @@ class App {
 
   // Components
   int selected_index_;
+  int left_width;
   bool profile_selected_;
   bool dm_selected_;
   bool voice_selected_;
 
   ftxui::Component menu_;
-  ftxui::Component content_container_;
   ftxui::Component container_;
   ftxui::ScreenInteractive screen_;
   bool show_authenticating_modal_;
@@ -62,6 +62,7 @@ class App {
   void StartStatusChangedCallback();
   void Ready();
   void Authorize();
+  void Presence() const;
 };
 
 }  // namespace discord_social_tui

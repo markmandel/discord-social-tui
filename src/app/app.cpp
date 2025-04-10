@@ -29,6 +29,7 @@ App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
     : application_id_{application_id},
       client_{std::move(client)},
       selected_index_{0},
+      left_width(LEFT_WIDTH),
       profile_selected_{false},
       dm_selected_{false},
       voice_selected_{false},
@@ -52,7 +53,7 @@ App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
       ftxui::Container::Horizontal({profile_button, dm_button, voice_button});
 
   // Content container with button row and content area
-  content_container_ = ftxui::Container::Vertical({
+  auto content = ftxui::Container::Vertical({
       button_row,
       ftxui::Renderer([] {
         return ftxui::vbox(
@@ -62,12 +63,7 @@ App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
       }),
   });
 
-  // Wrap in renderer for the right panel
-  auto content = ftxui::Renderer(content_container_,
-                                 [&] { return content_container_->Render(); });
-
   // Horizontal layout with the constrained menu
-  auto left_width = LEFT_WIDTH;
   container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width);
   // Wrap main container with loading modal
   container_ = AuthenticatingModal(container_);
@@ -112,7 +108,31 @@ void App::StartStatusChangedCallback() {
 void App::Ready() {
   // hide the modal.
   show_authenticating_modal_ = false;
+
+  // grab all the users
   list_items_ = {"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"};
+  // Set up rich presence
+  Presence();
+}
+
+// Set rich presence for the Discord client
+void App::Presence() const {
+  // Configure rich presence details
+  discordpp::Activity activity;
+  activity.SetType(discordpp::ActivityTypes::Playing);
+  activity.SetState("Command Lining");
+  activity.SetDetails("Better TUI than me...");
+
+  // Update rich presence
+  spdlog::debug("Updating Discord rich presence...");
+  client_->UpdateRichPresence(
+      activity, [](const discordpp::ClientResult& result) {
+        if (result.Successful()) {
+          spdlog::info("Rich Presence updated successfully");
+        } else {
+          spdlog::error("Rich Presence update failed: {}", result.Error());
+        }
+      });
 }
 
 void App::Authorize() {
