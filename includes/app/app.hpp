@@ -27,7 +27,7 @@ namespace discord_social_tui {
 class App {
  public:
   // Constructor with application ID and client
-  App(std::string application_id, std::shared_ptr<discordpp::Client> client);
+  App(uint64_t application_id, std::shared_ptr<discordpp::Client> client);
 
   // Run the application
   int Run();
@@ -40,7 +40,7 @@ class App {
   std::vector<std::string> list_items_;
 
   // Application configuration
-  std::string application_id_;
+  uint64_t application_id_;
 
   // Discord client
   std::shared_ptr<discordpp::Client> client_;
@@ -50,7 +50,6 @@ class App {
   bool profile_selected_;
   bool dm_selected_;
   bool voice_selected_;
-  int left_width_;
 
   ftxui::Component menu_;
   ftxui::Component content_container_;

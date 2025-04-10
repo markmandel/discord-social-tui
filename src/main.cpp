@@ -150,6 +150,6 @@ int main(int argc, char* argv[]) {
   ConfigureDiscordLogging(client);
 
   // Create and run application
-  discord_social_tui::App app(*application_id, client);
+  discord_social_tui::App app(std::stoull(*application_id), client);
   return app.Run();
 }

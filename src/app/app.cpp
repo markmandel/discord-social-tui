@@ -25,15 +25,13 @@
 namespace discord_social_tui {
 
 // Constructor for the App class
-App::App(std::string application_id, std::shared_ptr<discordpp::Client> client)
-    : list_items_{"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"},
-      application_id_{std::move(application_id)},
+App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
+    : application_id_{application_id},
       client_{std::move(client)},
       selected_index_{0},
       profile_selected_{false},
       dm_selected_{false},
       voice_selected_{false},
-      left_width_{LEFT_WIDTH},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
       show_authenticating_modal_{false} {
   // Log the application ID
@@ -69,7 +67,8 @@ App::App(std::string application_id, std::shared_ptr<discordpp::Client> client)
                                  [&] { return content_container_->Render(); });
 
   // Horizontal layout with the constrained menu
-  container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width_);
+  auto left_width = LEFT_WIDTH;
+  container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width);
   // Wrap main container with loading modal
   container_ = AuthenticatingModal(container_);
 }
@@ -113,6 +112,7 @@ void App::StartStatusChangedCallback() {
 void App::Ready() {
   // hide the modal.
   show_authenticating_modal_ = false;
+  list_items_ = {"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"};
 }
 
 void App::Authorize() {
@@ -124,7 +124,7 @@ void App::Authorize() {
 
   // Set up authentication arguments
   discordpp::AuthorizationArgs args{};
-  args.SetClientId(std::stoull(application_id_));
+  args.SetClientId(application_id_);
   args.SetScopes(discordpp::Client::GetDefaultPresenceScopes());
   args.SetCodeChallenge(code_verifier.Challenge());
 
@@ -143,8 +143,7 @@ void App::Authorize() {
 
     // Exchange auth code for access token
     client_->GetToken(
-        std::stoull(application_id_), code, code_verifier.Verifier(),
-        redirect_uri,
+        application_id_, code, code_verifier.Verifier(), redirect_uri,
         [this](const discordpp::ClientResult& result,
                const std::string& access_token,
                const std::string& refresh_token,
