@@ -79,7 +79,6 @@ int Friend::GetStatusPriority(const discordpp::StatusType status) {
 }
 
 bool Friend::operator<(const Friend& other) const {
-  spdlog::debug("Friend::operator<");
   // First compare by status priority
   const int status_a = GetStatusPriority(GetStatus());
   const int status_b = GetStatusPriority(other.GetStatus());
@@ -133,7 +132,7 @@ void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
 
   // Find the position to insert using binary search
   // We need to dereference the unique_ptrs to compare Friend objects
-  auto pos = std::ranges::lower_bound(
+  const auto pos = std::ranges::lower_bound(
       friends_, friend_, 
       [](const auto& friend_a, const auto& friend_b) {
         // Compare the Friend objects using the operator< we defined
@@ -175,7 +174,6 @@ Friend* Friends::GetFriendById(uint64_t user_id) {
 }
 
 void Friends::SortFriends() {
-  ::spdlog::debug("Sorting Friends");
   // Use projection to dereference the unique_ptr and compare the Friend objects
   std::ranges::sort(friends_, {}, [](const auto& ptr) -> const Friend& { return *ptr; });
 }

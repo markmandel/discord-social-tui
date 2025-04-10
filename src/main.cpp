@@ -99,7 +99,7 @@ bool ConfigureLogger() {
   }
 }
 
-void ConfigureDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
+void StartDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
   client->AddLogCallback(
       [](const std::string& message,
          const discordpp::LoggingSeverity severity) {
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
   // Create Discord client
   const auto client = std::make_shared<discordpp::Client>();
-  ConfigureDiscordLogging(client);
+  StartDiscordLogging(client);
 
   // Create and run application
   discord_social_tui::App app(std::stoull(*application_id), client);
