@@ -64,7 +64,7 @@ class App {
   void Ready();
   void Authorize();
   void Presence();
-  void InitializeFriends();
+  void InitialiseFriends() const;
 };
 
 }  // namespace discord_social_tui

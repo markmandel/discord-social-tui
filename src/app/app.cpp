@@ -114,25 +114,30 @@ void App::Ready() {
 
   // Set up rich presence
   Presence();
-  InitializeFriends();
+  InitialiseFriends();
 }
 
 // Initialize sample friends for testing
-void App::InitializeFriends() {
+void App::InitialiseFriends() const {
   // In a real application, these would be actual UserHandles from the Discord
   // SDK For now, we just log that this would happen here
-  spdlog::info(
-      "Initializing sample friends (would use actual UserHandles from Discord "
-      "SDK)");
+  spdlog::info("Initializing friends...");
 
-  // The Friend implementation has been refactored to use UserHandle objects
-  // directly. In a real implementation, we would get UserHandles from the
-  // Discord SDK and use them. For example:
-  //
-  // auto friends = client_->GetFriends();
-  // for (const auto& user_handle : friends) {
-  //   friends_->AddFriend(std::make_unique<Friend>(user_handle));
-  // }
+  for (auto& relationship : client_->GetRelationships()) {
+    auto user_opt = relationship.User();
+    if (!user_opt) {
+      continue;
+    }
+
+    // Get the actual UserHandle from the optional
+    discordpp::UserHandle user = user_opt.value();
+
+    // Log information about the friend we're adding
+    spdlog::debug("Adding friend: {} (ID: {})", user.Username(), user.Id());
+
+    // Create a new Friend from the user handle and add it to friends list
+    friends_->AddFriend(std::make_unique<Friend>(user));
+  }
 }
 
 // Set rich presence for the Discord client
