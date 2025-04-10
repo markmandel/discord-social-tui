@@ -125,10 +125,10 @@ void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
   // Find the position to insert using binary search
   // Use the < operator defined in the Friend class (leveraging std::sortable)
   auto pos = std::ranges::lower_bound(
-      friends_, friend_, 
-      [](const auto& a, const auto& b) {
-        // This comparison exploits the std::sortable concept we implemented
-        return *a < *b;
+      friends_, friend_, [](const auto& friend_a, const auto& friend_b) {
+        // This comparison exploits the
+        // std::sortable concept we implemented
+        return *friend_a < *friend_b;
       });
 
   // Insert the friend at the correct position
@@ -168,8 +168,8 @@ Friend* Friends::GetFriendById(uint64_t user_id) {
 void Friends::SortFriends() {
   // Sort the friends list by status and then alphabetically
   // Use the < operator defined in the Friend class
-  std::ranges::sort(friends_, [](const auto& a, const auto& b) {
-    return *a < *b;  // Use the Friend's < operator
+  std::ranges::sort(friends_, [](const auto& friend_a, const auto& friend_b) {
+    return *friend_a < *friend_b;  // Use the Friend's < operator
   });
 }
 
@@ -179,6 +179,5 @@ std::string Friends::operator[](const size_t index) const {
   }
   return "";
 }
-
 
 }  // namespace discord_social_tui

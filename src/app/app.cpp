@@ -141,9 +141,20 @@ void App::StartFriends() const {
   client_->SetUserUpdatedCallback(
       [&](uint64_t userId) { friends_->SortFriends(); });
 
+  client_->SetRelationshipCreatedCallback(
+      [&](uint64_t userId, bool isDiscordRelationshipUpdate) {
+        client_->GetUser(userId).and_then(
+            [&](const auto& user) -> std::optional<discordpp::UserHandle> {
+              spdlog::debug("🔥 Relationship created: {} (ID: {})",
+                            user.Username(), user.Id());
+              friends_->AddFriend(std::make_unique<Friend>(user));
+              return std::nullopt;
+            });
+      });
+
   client_->SetRelationshipDeletedCallback(
       [&](uint64_t userId, bool isDiscordRelationshipUpdate) {
-        std::cout << "🔥 Relationship deleted: " << userId << std::endl;
+        spdlog::debug("🔥 Relationship deleted (ID: {})", userId);
         friends_->RemoveFriend(userId);
       });
 }
