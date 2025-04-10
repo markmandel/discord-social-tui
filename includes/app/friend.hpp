@@ -41,10 +41,16 @@ class Friend {
     return user_handle_;
   }
 
-  // Operators for comparing friends (implements Comparable concept)
+  // Operators for comparing friends (implements Comparable and Sortable concepts)
   bool operator<(const Friend& other) const;
+  bool operator>(const Friend& other) const;
+  bool operator<=(const Friend& other) const;
+  bool operator>=(const Friend& other) const;
+  
+  // Operators for equality (implements Regular concept)
   bool operator==(const Friend& other) const;
-
+  bool operator!=(const Friend& other) const;
+  
   // Get status priority (lower number = higher priority)
   static int GetStatusPriority(discordpp::StatusType status);
 
@@ -70,7 +76,7 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   [[nodiscard]] Friend* GetFriendById(uint64_t user_id);
 
   // Sort the friends list by status (Online, Idle, Offline, Blocked) then
-  // alphabetically
+  // alphabetically, using the Friend class's operators
   void SortFriends();
 
   // Implement the ConstStringListRef::Adapter interface
@@ -78,12 +84,6 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   [[nodiscard]] std::string operator[](size_t index) const override;
 
  private:
-  // Compare two friends for sorting
-  static bool CompareFriends(const std::unique_ptr<Friend>& friend_a,
-                             const std::unique_ptr<Friend>& friend_b);
-
-  // Get status priority (lower number = higher priority)
-  static int GetStatusPriority(discordpp::StatusType status);
 
   std::vector<std::unique_ptr<Friend>> friends_;
 };

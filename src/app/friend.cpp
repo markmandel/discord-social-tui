@@ -91,9 +91,29 @@ bool Friend::operator<(const Friend& other) const {
   return GetDisplayName() < other.GetDisplayName();
 }
 
+bool Friend::operator>(const Friend& other) const {
+  // Reuse the < operator for consistency
+  return other < *this;
+}
+
+bool Friend::operator<=(const Friend& other) const {
+  // a <= b is equivalent to !(a > b)
+  return !(*this > other);
+}
+
+bool Friend::operator>=(const Friend& other) const {
+  // a >= b is equivalent to !(a < b)
+  return !(*this < other);
+}
+
 bool Friend::operator==(const Friend& other) const {
   // Friends are equal if they have the same ID
   return GetId() == other.GetId();
+}
+
+bool Friend::operator!=(const Friend& other) const {
+  // a != b is equivalent to !(a == b)
+  return !(*this == other);
 }
 
 void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
@@ -103,10 +123,12 @@ void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
   std::string username = friend_->GetUsername();
 
   // Find the position to insert using binary search
-  // Use the < operator defined in the Friend class
+  // Use the < operator defined in the Friend class (leveraging std::sortable)
   auto pos = std::ranges::lower_bound(
-      friends_, friend_, [](const auto& a, const auto& b) {
-        return *a < *b;  // Use the < operator we defined
+      friends_, friend_, 
+      [](const auto& a, const auto& b) {
+        // This comparison exploits the std::sortable concept we implemented
+        return *a < *b;
       });
 
   // Insert the friend at the correct position
@@ -158,34 +180,5 @@ std::string Friends::operator[](const size_t index) const {
   return "";
 }
 
-bool Friends::CompareFriends(const std::unique_ptr<Friend>& friend_a,
-                             const std::unique_ptr<Friend>& friend_b) {
-  // First compare by status priority
-  int status_a = GetStatusPriority(friend_a->GetStatus());
-  int status_b = GetStatusPriority(friend_b->GetStatus());
-
-  if (status_a != status_b) {
-    return status_a < status_b;  // Lower priority number comes first
-  }
-
-  // If status is the same, compare alphabetically by display name
-  return friend_a->GetDisplayName() < friend_b->GetDisplayName();
-}
-
-int Friends::GetStatusPriority(discordpp::StatusType status) {
-  // Order of priority: Online, Idle, Offline, Blocked
-  switch (status) {
-    case discordpp::StatusType::Online:
-      return 0;
-    case discordpp::StatusType::Idle:
-      return 1;
-    case discordpp::StatusType::Offline:
-      return 2;
-    case discordpp::StatusType::Blocked:
-      return 3;
-    default:
-      return 4;  // Any unknown status comes last
-  }
-}
 
 }  // namespace discord_social_tui
