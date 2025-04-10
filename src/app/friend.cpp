@@ -62,7 +62,7 @@ std::string Friend::GetFormattedDisplayName() const {
   return status_emoji + " " + GetDisplayName();
 }
 
-int Friend::GetStatusPriority(discordpp::StatusType status) {
+int Friend::GetStatusPriority(const discordpp::StatusType status) {
   // Order of priority: Online, Idle, Offline, Blocked
   switch (status) {
     case discordpp::StatusType::Online:
@@ -79,16 +79,22 @@ int Friend::GetStatusPriority(discordpp::StatusType status) {
 }
 
 bool Friend::operator<(const Friend& other) const {
+  spdlog::debug("Friend::operator<");
   // First compare by status priority
-  int status_a = GetStatusPriority(GetStatus());
-  int status_b = GetStatusPriority(other.GetStatus());
+  const int status_a = GetStatusPriority(GetStatus());
+  const int status_b = GetStatusPriority(other.GetStatus());
 
   if (status_a != status_b) {
     return status_a < status_b;  // Lower priority number comes first
   }
 
   // If status is the same, compare alphabetically by display name
-  return GetDisplayName() < other.GetDisplayName();
+  if (GetDisplayName() != other.GetDisplayName()) {
+    return GetDisplayName() < other.GetDisplayName();
+  }
+
+  // stable sorting
+  return GetId() < other.GetId();
 }
 
 bool Friend::operator>(const Friend& other) const {
@@ -116,6 +122,9 @@ bool Friend::operator!=(const Friend& other) const {
   return !(*this == other);
 }
 
+static_assert(std::equality_comparable<Friend>);
+static_assert(std::totally_ordered<Friend>);
+
 void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
   spdlog::debug("Adding friend: {}", friend_->GetUsername());
 
@@ -123,11 +132,11 @@ void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
   std::string username = friend_->GetUsername();
 
   // Find the position to insert using binary search
-  // Use the < operator defined in the Friend class (leveraging std::sortable)
+  // We need to dereference the unique_ptrs to compare Friend objects
   auto pos = std::ranges::lower_bound(
-      friends_, friend_, [](const auto& friend_a, const auto& friend_b) {
-        // This comparison exploits the
-        // std::sortable concept we implemented
+      friends_, friend_, 
+      [](const auto& friend_a, const auto& friend_b) {
+        // Compare the Friend objects using the operator< we defined
         return *friend_a < *friend_b;
       });
 
@@ -166,11 +175,9 @@ Friend* Friends::GetFriendById(uint64_t user_id) {
 }
 
 void Friends::SortFriends() {
-  // Sort the friends list by status and then alphabetically
-  // Use the < operator defined in the Friend class
-  std::ranges::sort(friends_, [](const auto& friend_a, const auto& friend_b) {
-    return *friend_a < *friend_b;  // Use the Friend's < operator
-  });
+  ::spdlog::debug("Sorting Friends");
+  // Use projection to dereference the unique_ptr and compare the Friend objects
+  std::ranges::sort(friends_, {}, [](const auto& ptr) -> const Friend& { return *ptr; });
 }
 
 std::string Friends::operator[](const size_t index) const {
