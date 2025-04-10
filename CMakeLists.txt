@@ -60,6 +60,7 @@ set(DISCORD_SDK_LIB_DIR ${DISCORD_SDK_DIR}/lib/release)
 # Library 
 add_library(${PROJECT_NAME}_lib
         src/app/app.cpp
+        src/app/friend.cpp
 )
 
 target_include_directories(${PROJECT_NAME}_lib PUBLIC

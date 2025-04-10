@@ -19,6 +19,7 @@
 #include <iostream>
 #include <utility>
 
+#include "app/friend.hpp"
 #include "ftxui/component/loop.hpp"
 #include "ftxui/dom/elements.hpp"
 
@@ -26,10 +27,11 @@ namespace discord_social_tui {
 
 // Constructor for the App class
 App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
-    : application_id_{application_id},
+    : friends_{std::make_unique<Friends>()},
+      application_id_{application_id},
       client_{std::move(client)},
       selected_index_{0},
-      left_width(LEFT_WIDTH),
+      left_width_{LEFT_WIDTH},
       profile_selected_{false},
       dm_selected_{false},
       voice_selected_{false},
@@ -38,8 +40,9 @@ App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
   // Log the application ID
   spdlog::debug("App initialized with Discord Application ID: {}",
                 application_id_);
+
   // Left side menu component
-  menu_ = ftxui::Menu(&list_items_, &selected_index_,
+  menu_ = ftxui::Menu(friends_.get(), &selected_index_,
                       ftxui::MenuOption::Vertical());
 
   // Action buttons
@@ -64,7 +67,7 @@ App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
   });
 
   // Horizontal layout with the constrained menu
-  container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width);
+  container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width_);
   // Wrap main container with loading modal
   container_ = AuthenticatingModal(container_);
 }
@@ -106,17 +109,34 @@ void App::StartStatusChangedCallback() {
 
 // Function to set up the application once we're authenticated.
 void App::Ready() {
-  // hide the modal.
+  // Hide the modal
   show_authenticating_modal_ = false;
 
-  // grab all the users
-  list_items_ = {"👋 Jane", "👋 Alex", "🟣 Amy", "💤 Daria", "⚫ Greg"};
   // Set up rich presence
   Presence();
+  InitializeFriends();
+}
+
+// Initialize sample friends for testing
+void App::InitializeFriends() {
+  // In a real application, these would be actual UserHandles from the Discord
+  // SDK For now, we just log that this would happen here
+  spdlog::info(
+      "Initializing sample friends (would use actual UserHandles from Discord "
+      "SDK)");
+
+  // The Friend implementation has been refactored to use UserHandle objects
+  // directly. In a real implementation, we would get UserHandles from the
+  // Discord SDK and use them. For example:
+  //
+  // auto friends = client_->GetFriends();
+  // for (const auto& user_handle : friends) {
+  //   friends_->AddFriend(std::make_unique<Friend>(user_handle));
+  // }
 }
 
 // Set rich presence for the Discord client
-void App::Presence() const {
+void App::Presence() {
   // Configure rich presence details
   discordpp::Activity activity;
   activity.SetType(discordpp::ActivityTypes::Playing);

@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 
+#include "app/friend.hpp"
 #include "discordpp.h"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
@@ -36,8 +37,8 @@ class App {
   // Width of the left menu
   static constexpr int LEFT_WIDTH = 20;
 
-  // Sample data for the list
-  std::vector<std::string> list_items_;
+  // Friends list
+  std::unique_ptr<Friends> friends_;
 
   // Application configuration
   uint64_t application_id_;
@@ -47,7 +48,7 @@ class App {
 
   // Components
   int selected_index_;
-  int left_width;
+  int left_width_;
   bool profile_selected_;
   bool dm_selected_;
   bool voice_selected_;
@@ -62,7 +63,8 @@ class App {
   void StartStatusChangedCallback();
   void Ready();
   void Authorize();
-  void Presence() const;
+  void Presence();
+  void InitializeFriends();
 };
 
 }  // namespace discord_social_tui
