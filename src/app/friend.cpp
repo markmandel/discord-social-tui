@@ -133,8 +133,7 @@ void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
   // Find the position to insert using binary search
   // We need to dereference the unique_ptrs to compare Friend objects
   const auto pos = std::ranges::lower_bound(
-      friends_, friend_, 
-      [](const auto& friend_a, const auto& friend_b) {
+      friends_, friend_, [](const auto& friend_a, const auto& friend_b) {
         // Compare the Friend objects using the operator< we defined
         return *friend_a < *friend_b;
       });
@@ -175,7 +174,8 @@ Friend* Friends::GetFriendById(uint64_t user_id) {
 
 void Friends::SortFriends() {
   // Use projection to dereference the unique_ptr and compare the Friend objects
-  std::ranges::sort(friends_, {}, [](const auto& ptr) -> const Friend& { return *ptr; });
+  std::ranges::sort(friends_, {},
+                    [](const auto& ptr) -> const Friend& { return *ptr; });
 }
 
 std::string Friends::operator[](const size_t index) const {

@@ -31,7 +31,6 @@ App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
     : friends_{std::make_unique<Friends>()},
       application_id_{application_id},
       client_{std::move(client)},
-      selected_index_{0},
       left_width_{LEFT_WIDTH},
       profile_selected_{false},
       dm_selected_{false},
@@ -42,8 +41,8 @@ App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
   spdlog::debug("App initialized with Discord Application ID: {}",
                 application_id_);
 
-  // Left side menu component
-  menu_ = ftxui::Menu(friends_.get(), &selected_index_,
+  // Left side menu component - use Friends' internal selection index
+  menu_ = ftxui::Menu(friends_.get(), friends_->GetSelectedIndex(),
                       ftxui::MenuOption::Vertical());
 
   // Action buttons
@@ -103,7 +102,8 @@ void App::StartStatusChangedCallback() {
     }
 
     if (status == discordpp::Client::Status::Ready) {
-      Ready();
+      // Use call_once to ensure Ready() is only called once
+      std::call_once(ready_flag_, [this]() { Ready(); });
     }
   });
 }

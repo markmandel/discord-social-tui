@@ -83,9 +83,15 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   // Implement the ConstStringListRef::Adapter interface
   [[nodiscard]] size_t size() const override { return friends_.size(); }
   [[nodiscard]] std::string operator[](size_t index) const override;
+  
+  // Get/set the currently selected friend index
+  [[nodiscard]] int* GetSelectedIndex() { return &selected_index_; }
+  void SetSelectedIndex(const int index) { selected_index_ = std::min(index, static_cast<int>(friends_.size() - 1)); }
+  [[nodiscard]] Friend* GetSelectedFriend() const { return GetFriendAt(selected_index_); }
 
  private:
   std::vector<std::unique_ptr<Friend>> friends_;
+  int selected_index_ = 0; // Default to first item
 };
 
 }  // namespace discord_social_tui

@@ -15,6 +15,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -47,7 +48,6 @@ class App {
   std::shared_ptr<discordpp::Client> client_;
 
   // Components
-  int selected_index_;
   int left_width_;
   bool profile_selected_;
   bool dm_selected_;
@@ -57,6 +57,9 @@ class App {
   ftxui::Component container_;
   ftxui::ScreenInteractive screen_;
   bool show_authenticating_modal_;
+
+  // Flag to ensure Ready() is only called once
+  std::once_flag ready_flag_;
 
   [[nodiscard]] ftxui::Component AuthenticatingModal(
       const ftxui::Component &main) const;
