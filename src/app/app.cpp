@@ -140,7 +140,7 @@ void App::Presence() {
   // Configure rich presence details
   discordpp::Activity activity;
   activity.SetType(discordpp::ActivityTypes::Playing);
-  activity.SetState("Command Lining");
+  activity.SetState("Discord on the Command Line");
   activity.SetDetails("Better TUI than me...");
 
   // Update rich presence
