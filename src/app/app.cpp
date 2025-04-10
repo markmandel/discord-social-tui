@@ -17,6 +17,7 @@
 #include <spdlog/spdlog.h>
 
 #include <iostream>
+#include <optional>
 #include <utility>
 
 #include "app/friend.hpp"
@@ -114,34 +115,41 @@ void App::Ready() {
 
   // Set up rich presence
   Presence();
-  InitialiseFriends();
+  StartFriends();
 }
 
-// Initialize sample friends for testing
-void App::InitialiseFriends() const {
+// Function to initialize friends and track their status changes
+void App::StartFriends() const {
   // In a real application, these would be actual UserHandles from the Discord
   // SDK For now, we just log that this would happen here
   spdlog::info("Initializing friends...");
 
   for (auto& relationship : client_->GetRelationships()) {
-    auto user_opt = relationship.User();
-    if (!user_opt) {
-      continue;
-    }
+    relationship.User().and_then(
+        [&](const auto& user) -> std::optional<discordpp::UserHandle> {
+          // Log information about the friend we're adding
+          spdlog::debug("Adding friend: {} (ID: {})", user.Username(),
+                        user.Id());
 
-    // Get the actual UserHandle from the optional
-    discordpp::UserHandle user = user_opt.value();
-
-    // Log information about the friend we're adding
-    spdlog::debug("Adding friend: {} (ID: {})", user.Username(), user.Id());
-
-    // Create a new Friend from the user handle and add it to friends list
-    friends_->AddFriend(std::make_unique<Friend>(user));
+          // Create a new Friend from the user handle and add it to friends list
+          friends_->AddFriend(std::make_unique<Friend>(user));
+          return std::nullopt;
+        });
   }
+
+  // resort friends when their status updates
+  client_->SetUserUpdatedCallback(
+      [&](uint64_t userId) { friends_->SortFriends(); });
+
+  client_->SetRelationshipDeletedCallback(
+      [&](uint64_t userId, bool isDiscordRelationshipUpdate) {
+        std::cout << "🔥 Relationship deleted: " << userId << std::endl;
+        friends_->RemoveFriend(userId);
+      });
 }
 
 // Set rich presence for the Discord client
-void App::Presence() {
+void App::Presence() const {
   // Configure rich presence details
   discordpp::Activity activity;
   activity.SetType(discordpp::ActivityTypes::Playing);

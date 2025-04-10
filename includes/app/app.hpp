@@ -63,8 +63,8 @@ class App {
   void StartStatusChangedCallback();
   void Ready();
   void Authorize();
-  void Presence();
-  void InitialiseFriends() const;
+  void Presence() const;
+  void StartFriends() const;
 };
 
 }  // namespace discord_social_tui

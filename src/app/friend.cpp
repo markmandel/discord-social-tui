@@ -62,6 +62,40 @@ std::string Friend::GetFormattedDisplayName() const {
   return status_emoji + " " + GetDisplayName();
 }
 
+int Friend::GetStatusPriority(discordpp::StatusType status) {
+  // Order of priority: Online, Idle, Offline, Blocked
+  switch (status) {
+    case discordpp::StatusType::Online:
+      return 0;
+    case discordpp::StatusType::Idle:
+      return 1;
+    case discordpp::StatusType::Offline:
+      return 2;
+    case discordpp::StatusType::Blocked:
+      return 3;
+    default:
+      return 4;  // Any unknown status comes last
+  }
+}
+
+bool Friend::operator<(const Friend& other) const {
+  // First compare by status priority
+  int status_a = GetStatusPriority(GetStatus());
+  int status_b = GetStatusPriority(other.GetStatus());
+
+  if (status_a != status_b) {
+    return status_a < status_b;  // Lower priority number comes first
+  }
+
+  // If status is the same, compare alphabetically by display name
+  return GetDisplayName() < other.GetDisplayName();
+}
+
+bool Friend::operator==(const Friend& other) const {
+  // Friends are equal if they have the same ID
+  return GetId() == other.GetId();
+}
+
 void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
   spdlog::debug("Adding friend: {}", friend_->GetUsername());
 
@@ -69,13 +103,10 @@ void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
   std::string username = friend_->GetUsername();
 
   // Find the position to insert using binary search
-  // The comparison is between existing elements and the new element
+  // Use the < operator defined in the Friend class
   auto pos = std::ranges::lower_bound(
-      friends_, friend_, [](const auto& existing, const auto& new_friend) {
-        // a < b means "a should come before b"
-        // So 'true' means existing should come before
-        // new_friend
-        return CompareFriends(existing, new_friend);
+      friends_, friend_, [](const auto& a, const auto& b) {
+        return *a < *b;  // Use the < operator we defined
       });
 
   // Insert the friend at the correct position
@@ -114,8 +145,9 @@ Friend* Friends::GetFriendById(uint64_t user_id) {
 
 void Friends::SortFriends() {
   // Sort the friends list by status and then alphabetically
-  std::ranges::sort(friends_, [](const auto& friend_a, const auto& friend_b) {
-    return CompareFriends(friend_a, friend_b);
+  // Use the < operator defined in the Friend class
+  std::ranges::sort(friends_, [](const auto& a, const auto& b) {
+    return *a < *b;  // Use the Friend's < operator
   });
 }
 

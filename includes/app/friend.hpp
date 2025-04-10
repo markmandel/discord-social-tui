@@ -41,6 +41,13 @@ class Friend {
     return user_handle_;
   }
 
+  // Operators for comparing friends (implements Comparable concept)
+  bool operator<(const Friend& other) const;
+  bool operator==(const Friend& other) const;
+
+  // Get status priority (lower number = higher priority)
+  static int GetStatusPriority(discordpp::StatusType status);
+
  private:
   discordpp::UserHandle user_handle_;
 };
