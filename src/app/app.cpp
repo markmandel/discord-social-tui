@@ -75,7 +75,7 @@ App::App(std::string application_id, std::shared_ptr<discordpp::Client> client)
 }
 
 // Create a modal for when we are authenticating
-ftxui::Component App::AuthenticatingModal(const ftxui::Component &main) const {
+ftxui::Component App::AuthenticatingModal(const ftxui::Component& main) const {
   constexpr int MODAL_WIDTH = 100;
   constexpr int MODAL_HEIGHT = 30;
   // Create a simple loading message with a border
@@ -104,24 +104,85 @@ void App::StartStatusChangedCallback() {
     }
 
     if (status == discordpp::Client::Status::Ready) {
-      Init();
+      Ready();
     }
   });
 }
 
 // Function to set up the application once we're authenticated.
-void App::Init() {
+void App::Ready() {
   // hide the modal.
   show_authenticating_modal_ = false;
+}
+
+void App::Authorize() {
+  // Show the authenticating modal while we're authorizing
+  show_authenticating_modal_ = true;
+
+  // Generate OAuth2 code verifier for authentication
+  auto code_verifier = client_->CreateAuthorizationCodeVerifier();
+
+  // Set up authentication arguments
+  discordpp::AuthorizationArgs args{};
+  args.SetClientId(std::stoull(application_id_));
+  args.SetScopes(discordpp::Client::GetDefaultPresenceScopes());
+  args.SetCodeChallenge(code_verifier.Challenge());
+
+  // Begin authentication process
+  client_->Authorize(args, [this, code_verifier](
+                               const discordpp::ClientResult& result,
+                               const std::string& code,
+                               const std::string& redirect_uri) {
+    if (!result.Successful()) {
+      spdlog::error("Authorization failed: {}", result.Error());
+      show_authenticating_modal_ = false;
+      return;
+    }
+
+    spdlog::info("Authorization successful, exchanging code for token");
+
+    // Exchange auth code for access token
+    client_->GetToken(
+        std::stoull(application_id_), code, code_verifier.Verifier(),
+        redirect_uri,
+        [this](const discordpp::ClientResult& result,
+               const std::string& access_token,
+               const std::string& refresh_token,
+               discordpp::AuthorizationTokenType token_type, int32_t expires_in,
+               const std::string& scope) {
+          if (!result.Successful()) {
+            spdlog::error("Token exchange failed: {}", result.Error());
+            return;
+          }
+
+          spdlog::info(
+              "Token exchange successful, access token expires in {} seconds",
+              expires_in);
+
+          // Set the authentication token for the client
+          client_->UpdateToken(token_type, std::string(access_token),
+                               [this](const discordpp::ClientResult& result) {
+                                 if (!result.Successful()) {
+                                   spdlog::error("Token update failed: {}",
+                                                 result.Error());
+                                 } else {
+                                   spdlog::info("Connection Social SDK...");
+                                   this->client_->Connect();
+                                   // The modal will be hidden when the client
+                                   // is ready via the status changed callback
+                                 }
+                               });
+        });
+  });
 }
 
 // Run the application
 int App::Run() {
   constexpr int SLEEP_MILLISECONDS = 10;
-
-  // For testing - enable the loading modal
-  show_authenticating_modal_ = true;
   StartStatusChangedCallback();
+
+  // Start the authorization process
+  Authorize();
 
   // Run the application loop
   ftxui::Loop loop(&screen_, container_);
