@@ -50,7 +50,7 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
  public:
   Friends() = default;
 
-  // Add a friend to the list
+  // Add a friend to the list and maintain sorting
   void AddFriend(std::unique_ptr<Friend> friend_);
 
   // Remove a friend from the list by ID
@@ -62,11 +62,22 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   // Get a friend by ID
   [[nodiscard]] Friend* GetFriendById(uint64_t user_id);
 
+  // Sort the friends list by status (Online, Idle, Offline, Blocked) then
+  // alphabetically
+  void SortFriends();
+
   // Implement the ConstStringListRef::Adapter interface
   [[nodiscard]] size_t size() const override { return friends_.size(); }
   [[nodiscard]] std::string operator[](size_t index) const override;
 
  private:
+  // Compare two friends for sorting
+  static bool CompareFriends(const std::unique_ptr<Friend>& friend_a,
+                             const std::unique_ptr<Friend>& friend_b);
+
+  // Get status priority (lower number = higher priority)
+  static int GetStatusPriority(discordpp::StatusType status);
+
   std::vector<std::unique_ptr<Friend>> friends_;
 };
 
