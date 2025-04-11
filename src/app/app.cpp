@@ -214,8 +214,8 @@ void App::Authorize() {
                 access_token,
             const std::string&  // NOLINT(bugprone-easily-swappable-parameters)
                 refresh_token,
-            const discordpp::AuthorizationTokenType token_type, int32_t expires_in,
-            const std::string& scope) {
+            const discordpp::AuthorizationTokenType token_type,
+            int32_t expires_in, const std::string& scope) {
           if (!result.Successful()) {
             spdlog::error("Token exchange failed: {}", result.Error());
             return;
