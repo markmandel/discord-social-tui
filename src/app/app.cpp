@@ -132,6 +132,8 @@ void App::StartFriends() const {
                         user.Id());
 
           // Create a new Friend from the user handle and add it to friends list
+
+          // TOXO: If not Friend as relationship type, then don't add them.
           friends_->AddFriend(std::make_unique<Friend>(user));
           return std::nullopt;
         });
@@ -147,6 +149,8 @@ void App::StartFriends() const {
             [&](const auto& user) -> std::optional<discordpp::UserHandle> {
               spdlog::debug("🔥 Relationship created: {} (ID: {})",
                             user.Username(), user.Id());
+
+              // TOXO: If not Friend as relationship type, then don't add them.
               friends_->AddFriend(std::make_unique<Friend>(user));
               return std::nullopt;
             });
