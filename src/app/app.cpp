@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "app/friend.hpp"
+#include "app/profile.hpp"
 #include "ftxui/component/loop.hpp"
 #include "ftxui/dom/elements.hpp"
 
@@ -28,9 +29,10 @@ namespace discord_social_tui {
 // Constructor for the App class
 App::App(const uint64_t application_id,
          std::shared_ptr<discordpp::Client> client)
-    : friends_{std::make_unique<Friends>()},
-      application_id_{application_id},
+    : application_id_{application_id},
       client_{std::move(client)},
+      friends_{std::make_unique<Friends>()},
+      profile_{std::make_unique<Profile>()},
       left_width_{LEFT_WIDTH},
       profile_selected_{false},
       dm_selected_{false},

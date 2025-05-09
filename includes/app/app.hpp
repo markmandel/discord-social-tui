@@ -23,6 +23,7 @@
 #include "discordpp.h"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
+#include "profile.hpp"
 
 namespace discord_social_tui {
 
@@ -60,6 +61,7 @@ class App {
 
   // Flag to ensure Ready() is only called once
   std::once_flag ready_flag_;
+  std::unique_ptr<Profile> profile_;
 
   [[nodiscard]] ftxui::Component AuthenticatingModal(
       const ftxui::Component &main) const;

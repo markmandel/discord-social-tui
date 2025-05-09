@@ -21,17 +21,26 @@
 
 namespace discord_social_tui {
 
-Profile::Profile(discordpp::UserHandle user_handle)
-    : user_handle_(std::move(user_handle)) {}
+const discordpp::UserHandle& Profile::GetUserHandle() const {
+  if (!has_user_handle_ || !user_handle_.has_value()) {
+    throw std::runtime_error("No user handle available");
+  }
+  return user_handle_.value();
+}
 
 void Profile::SetUserHandle(discordpp::UserHandle user_handle) {
   user_handle_ = std::move(user_handle);
-  spdlog::debug("Profile updated to user: {}", user_handle_.Username());
+  has_user_handle_ = true;
+  spdlog::debug("Profile updated to user: {}", user_handle_->Username());
 }
 
 ftxui::Component Profile::Render() const {
   // Create a container with profile sections
   return ftxui::Renderer([this] {
+    if (!has_user_handle_ || !user_handle_.has_value()) {
+      return RenderEmptyProfile();
+    }
+    
     return ftxui::vbox({
         RenderUserInfo(),
         ftxui::separator(),
@@ -40,11 +49,24 @@ ftxui::Component Profile::Render() const {
   });
 }
 
+ftxui::Element Profile::RenderEmptyProfile() const {
+  return ftxui::vbox({
+      ftxui::text("No Profile Selected") | ftxui::bold | ftxui::center,
+      ftxui::text(""),
+      ftxui::paragraph("Select a user to view their profile.") | ftxui::center,
+  });
+}
+
 ftxui::Element Profile::RenderUserInfo() const {
+  if (!has_user_handle_ || !user_handle_.has_value()) {
+    return RenderEmptyProfile();
+  }
+  
   // Get user information
-  const auto username = user_handle_.Username();
-  const auto display_name = user_handle_.DisplayName();
-  const auto user_id = std::to_string(user_handle_.Id());
+  const auto& handle = user_handle_.value();
+  const auto username = handle.Username();
+  const auto display_name = handle.DisplayName();
+  const auto user_id = std::to_string(handle.Id());
 
   // Build user info section
   auto user_info = ftxui::vbox({
@@ -74,11 +96,16 @@ ftxui::Element Profile::RenderUserInfo() const {
 }
 
 ftxui::Element Profile::RenderStatusInfo() const {
+  if (!has_user_handle_ || !user_handle_.has_value()) {
+    return ftxui::text("");
+  }
+
+  const auto& handle = user_handle_.value();
   std::string status_text;
   ftxui::Color status_color;
 
   // Determine status text and color
-  switch (user_handle_.Status()) {
+  switch (handle.Status()) {
     case discordpp::StatusType::Online:
       status_text = "Online";
       status_color = ftxui::Color::Green;

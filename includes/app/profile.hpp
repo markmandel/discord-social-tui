@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <string>
+#include <optional>
 
 #include "discordpp.h"
 #include "ftxui/component/component.hpp"
@@ -26,26 +27,31 @@ namespace discord_social_tui {
 // A Profile class to display a Discord user's profile
 class Profile {
  public:
-  // Constructor with user handle
-  explicit Profile(discordpp::UserHandle user_handle);
+  // Default constructor
+  Profile() : has_user_handle_(false) {}
 
   // Create and return a vertical container with profile information
   [[nodiscard]] ftxui::Component Render() const;
 
   // Access to the underlying UserHandle
-  [[nodiscard]] const discordpp::UserHandle& GetUserHandle() const {
-    return user_handle_;
+  [[nodiscard]] bool HasUserHandle() const {
+    return has_user_handle_;
   }
+  
+  // Get the user handle, only call if HasUserHandle() is true
+  [[nodiscard]] const discordpp::UserHandle& GetUserHandle() const;
 
   // Update the user handle
   void SetUserHandle(discordpp::UserHandle user_handle);
 
  private:
-  discordpp::UserHandle user_handle_;
+  bool has_user_handle_ = false;
+  std::optional<discordpp::UserHandle> user_handle_;
 
   // Helper methods to create profile sections
   [[nodiscard]] ftxui::Element RenderUserInfo() const;
   [[nodiscard]] ftxui::Element RenderStatusInfo() const;
+  [[nodiscard]] ftxui::Element RenderEmptyProfile() const;
 };
 
 }  // namespace discord_social_tui
