@@ -29,16 +29,16 @@ namespace discord_social_tui {
 // Constructor for the App class
 App::App(const uint64_t application_id,
          std::shared_ptr<discordpp::Client> client)
-    : application_id_{application_id},
+    : friends_{std::make_unique<Friends>()},
+      application_id_{application_id},
       client_{std::move(client)},
-      friends_{std::make_unique<Friends>()},
-      profile_{std::make_unique<Profile>()},
       left_width_{LEFT_WIDTH},
       profile_selected_{false},
       dm_selected_{false},
       voice_selected_{false},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
-      show_authenticating_modal_{false} {
+      show_authenticating_modal_{false},
+      profile_{std::make_unique<Profile>()} {
   // Log the application ID
   spdlog::debug("App initialized with Discord Application ID: {}",
                 application_id_);
