@@ -16,7 +16,6 @@
 
 #include <spdlog/spdlog.h>
 
-#include <iostream>
 #include <optional>
 #include <utility>
 
@@ -27,7 +26,7 @@
 namespace discord_social_tui {
 
 // Constructor for the App class
-App::App(uint64_t application_id, std::shared_ptr<discordpp::Client> client)
+App::App(const uint64_t application_id, std::shared_ptr<discordpp::Client> client)
     : friends_{std::make_unique<Friends>()},
       application_id_{application_id},
       client_{std::move(client)},
