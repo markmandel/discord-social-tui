@@ -33,7 +33,6 @@ App::App(const uint64_t application_id,
       application_id_{application_id},
       client_{std::move(client)},
       left_width_{LEFT_WIDTH},
-      profile_selected_{false},
       dm_selected_{false},
       voice_selected_{false},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
@@ -49,7 +48,9 @@ App::App(const uint64_t application_id,
 
   // Action buttons
   auto profile_button =
-      ftxui::Button("Profile", [&] { profile_selected_ = true; });
+      ftxui::Button("Profile", [&] {
+        profile_->SetUserHandle(friends_->GetSelectedFriend()->GetUserHandle());
+      });
   auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
   auto voice_button = ftxui::Button("Voice", [&] { voice_selected_ = true; });
 

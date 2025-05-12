@@ -50,7 +50,6 @@ class App {
 
   // Components
   int left_width_;
-  bool profile_selected_;
   bool dm_selected_;
   bool voice_selected_;
 
