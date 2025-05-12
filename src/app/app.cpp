@@ -60,12 +60,7 @@ App::App(const uint64_t application_id,
   // Content container with button row and content area
   auto content = ftxui::Container::Vertical({
       button_row,
-      ftxui::Renderer([] {
-        return ftxui::vbox(
-            {ftxui::separator(),
-             ftxui::paragraph("This area will display the content of the "
-                              "selected channel.")});
-      }),
+      profile_->Render(),
   });
 
   // Horizontal layout with the constrained menu

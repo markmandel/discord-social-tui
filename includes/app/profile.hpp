@@ -15,8 +15,8 @@
 #pragma once
 
 #include <memory>
-#include <string>
 #include <optional>
+#include <string>
 
 #include "discordpp.h"
 #include "ftxui/component/component.hpp"
@@ -34,10 +34,8 @@ class Profile {
   [[nodiscard]] ftxui::Component Render() const;
 
   // Access to the underlying UserHandle
-  [[nodiscard]] bool HasUserHandle() const {
-    return has_user_handle_;
-  }
-  
+  [[nodiscard]] bool HasUserHandle() const { return has_user_handle_; }
+
   // Get the user handle, only call if HasUserHandle() is true
   [[nodiscard]] const discordpp::UserHandle& GetUserHandle() const;
 

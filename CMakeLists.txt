@@ -57,10 +57,11 @@ set(DISCORD_SDK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/discord_social_sdk)
 set(DISCORD_SDK_INCLUDE_DIR ${DISCORD_SDK_DIR}/include)
 set(DISCORD_SDK_LIB_DIR ${DISCORD_SDK_DIR}/lib/release)
 
-# Library 
+# Library
 add_library(${PROJECT_NAME}_lib
         src/app/app.cpp
         src/app/friend.cpp
+        src/app/profile.cpp
 )
 
 target_include_directories(${PROJECT_NAME}_lib PUBLIC

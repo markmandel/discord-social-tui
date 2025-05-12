@@ -40,7 +40,7 @@ ftxui::Component Profile::Render() const {
     if (!has_user_handle_ || !user_handle_.has_value()) {
       return RenderEmptyProfile();
     }
-    
+
     return ftxui::vbox({
         RenderUserInfo(),
         ftxui::separator(),
@@ -61,38 +61,38 @@ ftxui::Element Profile::RenderUserInfo() const {
   if (!has_user_handle_ || !user_handle_.has_value()) {
     return RenderEmptyProfile();
   }
-  
+
   // Get user information
   const auto& handle = user_handle_.value();
   const auto username = handle.Username();
   const auto display_name = handle.DisplayName();
   const auto user_id = std::to_string(handle.Id());
 
-  // Build user info section
-  auto user_info = ftxui::vbox({
+  // Build elements for the user info section
+  std::vector<ftxui::Element> elements = {
       ftxui::text("User Profile") | ftxui::bold | ftxui::center,
       ftxui::text(""),
       ftxui::hbox({
           ftxui::text("Username: ") | ftxui::bold,
           ftxui::text(username),
-      }),
-  });
+      })};
 
   // Only add display name if it's different from username
   if (!display_name.empty() && display_name != username) {
-    user_info->Add(ftxui::hbox({
+    elements.push_back(ftxui::hbox({
         ftxui::text("Display Name: ") | ftxui::bold,
         ftxui::text(display_name),
     }));
   }
 
   // Add user ID
-  user_info->Add(ftxui::hbox({
+  elements.push_back(ftxui::hbox({
       ftxui::text("User ID: ") | ftxui::bold,
       ftxui::text(user_id),
   }));
 
-  return user_info;
+  // Create a vbox with all elements
+  return ftxui::vbox(elements);
 }
 
 ftxui::Element Profile::RenderStatusInfo() const {
