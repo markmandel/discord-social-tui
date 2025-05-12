@@ -15,6 +15,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -65,16 +66,16 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   Friends() = default;
 
   // Add a friend to the list and maintain sorting
-  void AddFriend(std::unique_ptr<Friend> friend_);
+  void AddFriend(std::shared_ptr<Friend> friend_);
 
   // Remove a friend from the list by ID
   void RemoveFriend(uint64_t user_id);
 
   // Get a friend by index
-  [[nodiscard]] Friend* GetFriendAt(size_t index) const;
+  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetFriendAt(size_t index) const;
 
   // Get a friend by ID
-  [[nodiscard]] Friend* GetFriendById(uint64_t user_id);
+  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetFriendById(uint64_t user_id);
 
   // Sort the friends list by status (Online, Idle, Offline, Blocked) then
   // alphabetically, using the Friend class's operators
@@ -89,12 +90,12 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   void SetSelectedIndex(const int index) {
     selected_index_ = std::min(index, static_cast<int>(friends_.size() - 1));
   }
-  [[nodiscard]] Friend* GetSelectedFriend() const {
+  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetSelectedFriend() const {
     return GetFriendAt(selected_index_);
   }
 
  private:
-  std::vector<std::unique_ptr<Friend>> friends_;
+  std::vector<std::shared_ptr<Friend>> friends_;
   int selected_index_ = 0;  // Default to first item
 };
 

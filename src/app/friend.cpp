@@ -124,14 +124,14 @@ bool Friend::operator!=(const Friend& other) const {
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);
 
-void Friends::AddFriend(std::unique_ptr<Friend> friend_) {
+void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
   spdlog::debug("Adding friend: {}", friend_->GetUsername());
 
   // Store username for logging as we'll be moving the friend
   std::string username = friend_->GetUsername();
 
   // Find the position to insert using binary search
-  // We need to dereference the unique_ptrs to compare Friend objects
+  // We need to dereference the shared_ptrs to compare Friend objects
   const auto pos = std::ranges::lower_bound(
       friends_, friend_, [](const auto& friend_a, const auto& friend_b) {
         // Compare the Friend objects using the operator< we defined
@@ -157,19 +157,19 @@ void Friends::RemoveFriend(uint64_t user_id) {
   }
 }
 
-Friend* Friends::GetFriendAt(const size_t index) const {
+std::optional<std::shared_ptr<Friend>> Friends::GetFriendAt(const size_t index) const {
   if (index < friends_.size()) {
-    return friends_[index].get();
+    return friends_[index];
   }
-  return nullptr;
+  return std::nullopt;
 }
 
-Friend* Friends::GetFriendById(uint64_t user_id) {
+std::optional<std::shared_ptr<Friend>> Friends::GetFriendById(uint64_t user_id) {
   const auto iterator = std::ranges::find_if(
       friends_,
       [user_id](const auto& friend_) { return friend_->GetId() == user_id; });
 
-  return (iterator != friends_.end()) ? iterator->get() : nullptr;
+  return (iterator != friends_.end()) ? std::optional{*iterator} : std::nullopt;
 }
 
 void Friends::SortFriends() {

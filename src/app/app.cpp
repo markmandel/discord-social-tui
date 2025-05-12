@@ -49,7 +49,10 @@ App::App(const uint64_t application_id,
   // Action buttons
   auto profile_button =
       ftxui::Button("Profile", [&] {
-        profile_->SetUserHandle(friends_->GetSelectedFriend()->GetUserHandle());
+        auto selected_friend = friends_->GetSelectedFriend();
+        if (selected_friend) {
+          profile_->SetUserHandle((*selected_friend)->GetUserHandle());
+        }
       });
   auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
   auto voice_button = ftxui::Button("Voice", [&] { voice_selected_ = true; });
@@ -132,7 +135,7 @@ void App::StartFriends() const {
           // Create a new Friend from the user handle and add it to friends list
 
           // TOXO: If not Friend as relationship type, then don't add them.
-          friends_->AddFriend(std::make_unique<Friend>(user));
+          friends_->AddFriend(std::make_shared<Friend>(user));
           return std::nullopt;
         });
   }
@@ -149,7 +152,7 @@ void App::StartFriends() const {
                             user.Username(), user.Id());
 
               // TOXO: If not Friend as relationship type, then don't add them.
-              friends_->AddFriend(std::make_unique<Friend>(user));
+              friends_->AddFriend(std::make_shared<Friend>(user));
               return std::nullopt;
             });
       });
