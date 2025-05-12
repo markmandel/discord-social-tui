@@ -49,6 +49,7 @@ class Profile {
   // Helper methods to create profile sections
   [[nodiscard]] ftxui::Element RenderUserInfo() const;
   [[nodiscard]] ftxui::Element RenderStatusInfo() const;
+  [[nodiscard]] ftxui::Element RenderRelationshipInfo() const;
   [[nodiscard]] ftxui::Element RenderEmptyProfile() const;
 };
 

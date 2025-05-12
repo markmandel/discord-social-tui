@@ -45,6 +45,8 @@ ftxui::Component Profile::Render() const {
         RenderUserInfo(),
         ftxui::separator(),
         RenderStatusInfo(),
+        ftxui::separator(),
+        RenderRelationshipInfo(),
     });
   });
 }
@@ -67,6 +69,7 @@ ftxui::Element Profile::RenderUserInfo() const {
   const auto username = handle.Username();
   const auto display_name = handle.DisplayName();
   const auto user_id = std::to_string(handle.Id());
+  const bool is_provisional = handle.IsProvisional();
 
   // Build elements for the user info section
   std::vector<ftxui::Element> elements = {
@@ -89,6 +92,14 @@ ftxui::Element Profile::RenderUserInfo() const {
   elements.push_back(ftxui::hbox({
       ftxui::text("User ID: ") | ftxui::bold,
       ftxui::text(user_id),
+  }));
+
+  // Add provisional status with appropriate styling
+  elements.push_back(ftxui::hbox({
+      ftxui::text("Provisional: ") | ftxui::bold,
+      is_provisional ?
+          ftxui::text("Yes") | ftxui::color(ftxui::Color::Yellow) :
+          ftxui::text("No") | ftxui::color(ftxui::Color::Green),
   }));
 
   // Create a vbox with all elements
@@ -134,6 +145,70 @@ ftxui::Element Profile::RenderStatusInfo() const {
           ftxui::text(status_text) | ftxui::color(status_color),
       }),
       // Add additional status information here if needed
+  });
+}
+
+ftxui::Element Profile::RenderRelationshipInfo() const {
+  if (!has_user_handle_ || !user_handle_.has_value()) {
+    return ftxui::text("");
+  }
+
+  const auto& handle = user_handle_.value();
+
+  // Get relationship handle
+  auto relationship = handle.Relationship();
+
+  // Get relationship types
+  const auto discord_relation = relationship.DiscordRelationshipType();
+  const auto game_relation = relationship.GameRelationshipType();
+
+  // Get relationship strings using EnumToString
+  std::string discord_relation_text = discordpp::EnumToString(discord_relation);
+  std::string game_relation_text = discordpp::EnumToString(game_relation);
+
+  // Determine colors based on relationship types
+  ftxui::Color discord_relation_color;
+  switch (discord_relation) {
+    case discordpp::RelationshipType::Friend:
+      discord_relation_color = ftxui::Color::Green;
+      break;
+    case discordpp::RelationshipType::Blocked:
+      discord_relation_color = ftxui::Color::Red;
+      break;
+    case discordpp::RelationshipType::PendingIncoming:
+    case discordpp::RelationshipType::PendingOutgoing:
+      discord_relation_color = ftxui::Color::Yellow;
+      break;
+    case discordpp::RelationshipType::None:
+    default:
+      discord_relation_color = ftxui::Color::GrayDark;
+      break;
+  }
+
+  // Game relationship color
+  ftxui::Color game_relation_color;
+  switch (game_relation) {
+    case discordpp::RelationshipType::Friend:
+      game_relation_color = ftxui::Color::Green;
+      break;
+    case discordpp::RelationshipType::None:
+    default:
+      game_relation_color = ftxui::Color::GrayDark;
+      break;
+  }
+
+  // Build relationship section
+  return ftxui::vbox({
+      ftxui::text("Relationship Information") | ftxui::bold | ftxui::center,
+      ftxui::text(""),
+      ftxui::hbox({
+          ftxui::text("Discord Relationship: ") | ftxui::bold,
+          ftxui::text(discord_relation_text) | ftxui::color(discord_relation_color),
+      }),
+      ftxui::hbox({
+          ftxui::text("Game Relationship: ") | ftxui::bold,
+          ftxui::text(game_relation_text) | ftxui::color(game_relation_color),
+      }),
   });
 }
 
