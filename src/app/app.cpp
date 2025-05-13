@@ -29,7 +29,7 @@ namespace discord_social_tui {
 // Constructor for the App class
 App::App(const uint64_t application_id,
          std::shared_ptr<discordpp::Client> client)
-    : friends_{std::make_unique<Friends>()},
+    : friends_{std::make_shared<Friends>()},
       application_id_{application_id},
       client_{std::move(client)},
       left_width_{LEFT_WIDTH},
@@ -47,14 +47,15 @@ App::App(const uint64_t application_id,
                       ftxui::MenuOption::Vertical());
 
   // Action buttons
-  auto profile_button =
-      ftxui::Button("Profile", [&] {
-        friends_->GetSelectedFriend().and_then([&](const auto& selected_friend) -> std::optional<std::shared_ptr<Friend>> {
+  auto profile_button = ftxui::Button("Profile", [&] {
+    friends_->GetSelectedFriend().and_then(
+        [&](const auto& selected_friend)
+            -> std::optional<std::shared_ptr<Friend>> {
           profile_->SetUserHandle(selected_friend->GetUserHandle());
           // since we don't care about the return type
           return std::nullopt;
         });
-      });
+  });
   auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
   auto voice_button = ftxui::Button("Voice", [&] { voice_selected_ = true; });
 
@@ -63,7 +64,7 @@ App::App(const uint64_t application_id,
       ftxui::Container::Horizontal({profile_button, dm_button, voice_button});
 
   // Content container with button row and content area
-  auto content = ftxui::Container::Vertical({
+  const auto content = ftxui::Container::Vertical({
       button_row,
       profile_->Render(),
   });

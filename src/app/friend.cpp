@@ -157,14 +157,16 @@ void Friends::RemoveFriend(uint64_t user_id) {
   }
 }
 
-std::optional<std::shared_ptr<Friend>> Friends::GetFriendAt(const size_t index) const {
+std::optional<std::shared_ptr<Friend>> Friends::GetFriendAt(
+    const size_t index) const {
   if (index < friends_.size()) {
     return friends_[index];
   }
   return std::nullopt;
 }
 
-std::optional<std::shared_ptr<Friend>> Friends::GetFriendById(uint64_t user_id) {
+std::optional<std::shared_ptr<Friend>> Friends::GetFriendById(
+    uint64_t user_id) {
   const auto iterator = std::ranges::find_if(
       friends_,
       [user_id](const auto& friend_) { return friend_->GetId() == user_id; });

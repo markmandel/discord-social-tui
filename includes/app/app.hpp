@@ -40,7 +40,7 @@ class App {
   static constexpr int LEFT_WIDTH = 20;
 
   // Friends list
-  std::unique_ptr<Friends> friends_;
+  std::shared_ptr<Friends> friends_;
 
   // Application configuration
   uint64_t application_id_;

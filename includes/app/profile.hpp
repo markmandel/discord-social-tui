@@ -28,7 +28,7 @@ namespace discord_social_tui {
 class Profile {
  public:
   // Default constructor
-  Profile() : has_user_handle_(false) {}
+  Profile() = default;
 
   // Create and return a vertical container with profile information
   [[nodiscard]] ftxui::Component Render() const;
@@ -50,7 +50,7 @@ class Profile {
   [[nodiscard]] ftxui::Element RenderUserInfo() const;
   [[nodiscard]] ftxui::Element RenderStatusInfo() const;
   [[nodiscard]] ftxui::Element RenderRelationshipInfo() const;
-  [[nodiscard]] ftxui::Element RenderEmptyProfile() const;
+  [[nodiscard]] static ftxui::Element RenderEmptyProfile();
 };
 
 }  // namespace discord_social_tui

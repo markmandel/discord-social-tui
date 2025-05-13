@@ -51,7 +51,7 @@ ftxui::Component Profile::Render() const {
   });
 }
 
-ftxui::Element Profile::RenderEmptyProfile() const {
+ftxui::Element Profile::RenderEmptyProfile() {
   return ftxui::vbox({
       ftxui::text("No Profile Selected") | ftxui::bold | ftxui::center,
       ftxui::text(""),
@@ -97,9 +97,8 @@ ftxui::Element Profile::RenderUserInfo() const {
   // Add provisional status with appropriate styling
   elements.push_back(ftxui::hbox({
       ftxui::text("Provisional: ") | ftxui::bold,
-      is_provisional ?
-          ftxui::text("Yes") | ftxui::color(ftxui::Color::Yellow) :
-          ftxui::text("No") | ftxui::color(ftxui::Color::Green),
+      is_provisional ? ftxui::text("Yes") | ftxui::color(ftxui::Color::Yellow)
+                     : ftxui::text("No") | ftxui::color(ftxui::Color::Green),
   }));
 
   // Create a vbox with all elements
@@ -203,7 +202,8 @@ ftxui::Element Profile::RenderRelationshipInfo() const {
       ftxui::text(""),
       ftxui::hbox({
           ftxui::text("Discord Relationship: ") | ftxui::bold,
-          ftxui::text(discord_relation_text) | ftxui::color(discord_relation_color),
+          ftxui::text(discord_relation_text) |
+              ftxui::color(discord_relation_color),
       }),
       ftxui::hbox({
           ftxui::text("Game Relationship: ") | ftxui::bold,

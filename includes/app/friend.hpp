@@ -72,10 +72,12 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   void RemoveFriend(uint64_t user_id);
 
   // Get a friend by index
-  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetFriendAt(size_t index) const;
+  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetFriendAt(
+      size_t index) const;
 
   // Get a friend by ID
-  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetFriendById(uint64_t user_id);
+  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetFriendById(
+      uint64_t user_id);
 
   // Sort the friends list by status (Online, Idle, Offline, Blocked) then
   // alphabetically, using the Friend class's operators
@@ -90,7 +92,8 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   void SetSelectedIndex(const int index) {
     selected_index_ = std::min(index, static_cast<int>(friends_.size() - 1));
   }
-  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetSelectedFriend() const {
+  [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetSelectedFriend()
+      const {
     return GetFriendAt(selected_index_);
   }
 
