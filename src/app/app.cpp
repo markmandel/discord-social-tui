@@ -47,9 +47,8 @@ App::App(const uint64_t application_id,
                       ftxui::MenuOption::Vertical());
 
   // Action buttons
-  auto profile_button = ftxui::Button("Profile", [&] {
-    spdlog::info("pressed profile button");
-  });
+  auto profile_button =
+      ftxui::Button("Profile", [&] { spdlog::info("pressed profile button"); });
   auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
   auto voice_button = ftxui::Button("Voice", [&] { voice_selected_ = true; });
 

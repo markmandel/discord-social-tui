@@ -92,6 +92,8 @@ class Friends : public ftxui::ConstStringListRef::Adapter {
   void SetSelectedIndex(const int index) {
     selected_index_ = std::min(index, static_cast<int>(friends_.size() - 1));
   }
+  // Set the selected index to the friend with the given user ID
+  void SetSelectedIndexByFriendId(uint64_t user_id);
   [[nodiscard]] std::optional<std::shared_ptr<Friend>> GetSelectedFriend()
       const {
     return GetFriendAt(selected_index_);

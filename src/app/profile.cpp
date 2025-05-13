@@ -32,8 +32,7 @@ ftxui::Component Profile::Render() const {
   // Create a container with profile sections
   return ftxui::Renderer([this] {
     // grab the currently selected friend
-    const auto user_handle
-    = this->friends_->GetSelectedFriend().and_then(
+    const auto user_handle = this->friends_->GetSelectedFriend().and_then(
         [](const std::shared_ptr<Friend>& f)
             -> std::optional<discordpp::UserHandle> {
           return f->GetUserHandle();

@@ -187,4 +187,16 @@ std::string Friends::operator[](const size_t index) const {
   return "";
 }
 
+void Friends::SetSelectedIndexByFriendId(uint64_t user_id) {
+  for (size_t i = 0; i < friends_.size(); ++i) {
+    if (friends_[i]->GetId() == user_id) {
+      selected_index_ = static_cast<int>(i);
+      return;
+    }
+  }
+  // If friend is not found, keep the current selection
+  spdlog::warn("Friend with ID {} not found, keeping current selection",
+               user_id);
+}
+
 }  // namespace discord_social_tui
