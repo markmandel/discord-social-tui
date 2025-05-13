@@ -48,13 +48,7 @@ App::App(const uint64_t application_id,
 
   // Action buttons
   auto profile_button = ftxui::Button("Profile", [&] {
-    friends_->GetSelectedFriend().and_then(
-        [&](const auto& selected_friend)
-            -> std::optional<std::shared_ptr<Friend>> {
-          profile_->SetUserHandle(selected_friend->GetUserHandle());
-          // since we don't care about the return type
-          return std::nullopt;
-        });
+    spdlog::info("pressed profile button");
   });
   auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
   auto voice_button = ftxui::Button("Voice", [&] { voice_selected_ = true; });

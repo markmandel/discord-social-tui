@@ -28,31 +28,27 @@ Profile::Profile(std::shared_ptr<Friends> friends)
   spdlog::debug("Profile created with Friends reference");
 }
 
-const discordpp::UserHandle& Profile::GetUserHandle() const {
-  if (!user_handle_.has_value()) {
-    throw std::runtime_error("No user handle available");
-  }
-  return user_handle_.value();
-}
-
-void Profile::SetUserHandle(discordpp::UserHandle user_handle) {
-  user_handle_ = std::move(user_handle);
-  spdlog::debug("Profile updated to user: {}", user_handle_->Username());
-}
-
 ftxui::Component Profile::Render() const {
   // Create a container with profile sections
   return ftxui::Renderer([this] {
-    if (!user_handle_.has_value()) {
+    // grab the currently selected friend
+    const auto user_handle
+    = this->friends_->GetSelectedFriend().and_then(
+        [](const std::shared_ptr<Friend>& f)
+            -> std::optional<discordpp::UserHandle> {
+          return f->GetUserHandle();
+        });
+
+    if (!user_handle) {
       return RenderEmptyProfile();
     }
 
     return ftxui::vbox({
-        RenderUserInfo(),
+        RenderUserInfo(user_handle.value()),
         ftxui::separator(),
-        RenderStatusInfo(),
+        RenderStatusInfo(user_handle.value()),
         ftxui::separator(),
-        RenderRelationshipInfo(),
+        RenderRelationshipInfo(user_handle.value()),
     });
   });
 }
@@ -65,17 +61,13 @@ ftxui::Element Profile::RenderEmptyProfile() {
   });
 }
 
-ftxui::Element Profile::RenderUserInfo() const {
-  if (!user_handle_.has_value()) {
-    return RenderEmptyProfile();
-  }
-
+ftxui::Element Profile::RenderUserInfo(
+    discordpp::UserHandle user_handle) const {
   // Get user information
-  const auto& handle = user_handle_.value();
-  const auto username = handle.Username();
-  const auto display_name = handle.DisplayName();
-  const auto user_id = std::to_string(handle.Id());
-  const bool is_provisional = handle.IsProvisional();
+  const auto username = user_handle.Username();
+  const auto display_name = user_handle.DisplayName();
+  const auto user_id = std::to_string(user_handle.Id());
+  const bool is_provisional = user_handle.IsProvisional();
 
   // Build elements for the user info section
   std::vector<ftxui::Element> elements = {
@@ -111,12 +103,9 @@ ftxui::Element Profile::RenderUserInfo() const {
   return ftxui::vbox(elements);
 }
 
-ftxui::Element Profile::RenderStatusInfo() const {
-  if (!user_handle_.has_value()) {
-    return ftxui::text("");
-  }
-
-  const auto& handle = user_handle_.value();
+ftxui::Element Profile::RenderStatusInfo(
+    discordpp::UserHandle user_handle) const {
+  const auto& handle = user_handle;
   std::string status_text;
   ftxui::Color status_color;
 
@@ -153,15 +142,10 @@ ftxui::Element Profile::RenderStatusInfo() const {
   });
 }
 
-ftxui::Element Profile::RenderRelationshipInfo() const {
-  if (!user_handle_.has_value()) {
-    return ftxui::text("");
-  }
-
-  const auto& handle = user_handle_.value();
-
+ftxui::Element Profile::RenderRelationshipInfo(
+    discordpp::UserHandle user_handle) const {
   // Get relationship handle
-  auto relationship = handle.Relationship();
+  auto relationship = user_handle.Relationship();
 
   // Get relationship types
   const auto discord_relation = relationship.DiscordRelationshipType();

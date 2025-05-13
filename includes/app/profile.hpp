@@ -36,20 +36,13 @@ class Profile {
   // Create and return a vertical container with profile information
   [[nodiscard]] ftxui::Component Render() const;
 
-  // Get the user handle, only call if HasUserHandle() is true
-  [[nodiscard]] const discordpp::UserHandle& GetUserHandle() const;
-
-  // Update the user handle
-  void SetUserHandle(discordpp::UserHandle user_handle);
-
  private:
-  std::optional<discordpp::UserHandle> user_handle_;
   std::shared_ptr<Friends> friends_;
 
   // Helper methods to create profile sections
-  [[nodiscard]] ftxui::Element RenderUserInfo() const;
-  [[nodiscard]] ftxui::Element RenderStatusInfo() const;
-  [[nodiscard]] ftxui::Element RenderRelationshipInfo() const;
+  [[nodiscard]] ftxui::Element RenderUserInfo(discordpp::UserHandle user_handle) const;
+  [[nodiscard]] ftxui::Element RenderStatusInfo(discordpp::UserHandle user_handle) const;
+  [[nodiscard]] ftxui::Element RenderRelationshipInfo(discordpp::UserHandle user_handle) const;
   [[nodiscard]] static ftxui::Element RenderEmptyProfile();
 };
 
