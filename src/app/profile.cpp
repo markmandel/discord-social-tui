@@ -19,10 +19,17 @@
 #include <string>
 #include <utility>
 
+#include "app/friend.hpp"
+
 namespace discord_social_tui {
 
+Profile::Profile(std::shared_ptr<Friends> friends)
+    : friends_(std::move(friends)) {
+  spdlog::debug("Profile created with Friends reference");
+}
+
 const discordpp::UserHandle& Profile::GetUserHandle() const {
-  if (!has_user_handle_ || !user_handle_.has_value()) {
+  if (!user_handle_.has_value()) {
     throw std::runtime_error("No user handle available");
   }
   return user_handle_.value();
@@ -30,14 +37,13 @@ const discordpp::UserHandle& Profile::GetUserHandle() const {
 
 void Profile::SetUserHandle(discordpp::UserHandle user_handle) {
   user_handle_ = std::move(user_handle);
-  has_user_handle_ = true;
   spdlog::debug("Profile updated to user: {}", user_handle_->Username());
 }
 
 ftxui::Component Profile::Render() const {
   // Create a container with profile sections
   return ftxui::Renderer([this] {
-    if (!has_user_handle_ || !user_handle_.has_value()) {
+    if (!user_handle_.has_value()) {
       return RenderEmptyProfile();
     }
 
@@ -60,7 +66,7 @@ ftxui::Element Profile::RenderEmptyProfile() {
 }
 
 ftxui::Element Profile::RenderUserInfo() const {
-  if (!has_user_handle_ || !user_handle_.has_value()) {
+  if (!user_handle_.has_value()) {
     return RenderEmptyProfile();
   }
 
@@ -106,7 +112,7 @@ ftxui::Element Profile::RenderUserInfo() const {
 }
 
 ftxui::Element Profile::RenderStatusInfo() const {
-  if (!has_user_handle_ || !user_handle_.has_value()) {
+  if (!user_handle_.has_value()) {
     return ftxui::text("");
   }
 
@@ -148,7 +154,7 @@ ftxui::Element Profile::RenderStatusInfo() const {
 }
 
 ftxui::Element Profile::RenderRelationshipInfo() const {
-  if (!has_user_handle_ || !user_handle_.has_value()) {
+  if (!user_handle_.has_value()) {
     return ftxui::text("");
   }
 

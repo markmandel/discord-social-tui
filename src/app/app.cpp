@@ -37,7 +37,7 @@ App::App(const uint64_t application_id,
       voice_selected_{false},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
       show_authenticating_modal_{false},
-      profile_{std::make_unique<Profile>()} {
+      profile_{std::make_unique<Profile>(friends_)} {
   // Log the application ID
   spdlog::debug("App initialized with Discord Application ID: {}",
                 application_id_);
