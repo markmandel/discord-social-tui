@@ -130,6 +130,8 @@ void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
   // Store username for logging as we'll be moving the friend
   std::string username = friend_->GetUsername();
 
+  auto selected = GetSelectedFriend();
+
   // Find the position to insert using binary search
   // We need to dereference the shared_ptrs to compare Friend objects
   const auto pos = std::ranges::lower_bound(
@@ -142,6 +144,11 @@ void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
   friends_.insert(pos, std::move(friend_));
   spdlog::debug("Friend {} inserted at position {}", username,
                 std::distance(friends_.begin(), pos));
+  selected.and_then(
+      [&](const auto& selected_friend) -> std::optional<std::monostate> {
+        SetSelectedIndexByFriendId(selected_friend->GetId());
+        return std::nullopt;
+      });
 }
 
 void Friends::RemoveFriend(uint64_t user_id) {
@@ -151,7 +158,14 @@ void Friends::RemoveFriend(uint64_t user_id) {
 
   if (iterator != friends_.end()) {
     spdlog::debug("Removing friend: {}", (*iterator)->GetUsername());
+    auto selected = GetSelectedFriend();
     friends_.erase(iterator);
+
+    selected.and_then(
+        [&](const auto& selected_friend) -> std::optional<std::monostate> {
+          SetSelectedIndexByFriendId(selected_friend->GetId());
+          return std::nullopt;
+        });
   } else {
     spdlog::warn("Friend not found with ID: {}", user_id);
   }
@@ -175,9 +189,17 @@ std::optional<std::shared_ptr<Friend>> Friends::GetFriendById(
 }
 
 void Friends::SortFriends() {
+  auto selected = GetSelectedFriend();
+
   // Use projection to dereference the unique_ptr and compare the Friend objects
   std::ranges::sort(friends_, {},
                     [](const auto& ptr) -> const Friend& { return *ptr; });
+
+  selected.and_then(
+      [&](const auto& selected_friend) -> std::optional<std::monostate> {
+        SetSelectedIndexByFriendId(selected_friend->GetId());
+        return std::nullopt;
+      });
 }
 
 std::string Friends::operator[](const size_t index) const {
