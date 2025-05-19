@@ -127,10 +127,13 @@ void App::StartFriends() const {
           spdlog::debug("Adding friend: {} (ID: {})", user.Username(),
                         user.Id());
 
-          // Create a new Friend from the user handle and add it to friends list
-
-          // TOXO: If not Friend as relationship type, then don't add them.
-          friends_->AddFriend(std::make_shared<Friend>(user));
+          // Only show if a real friend.
+          if (relationship.DiscordRelationshipType() ==
+                  discordpp::RelationshipType::Friend ||
+              relationship.GameRelationshipType() ==
+                  discordpp::RelationshipType::Friend) {
+            friends_->AddFriend(std::make_shared<Friend>(user));
+          }
           return std::nullopt;
         });
   }
@@ -146,7 +149,15 @@ void App::StartFriends() const {
               spdlog::debug("🔥 Relationship created: {} (ID: {})",
                             user.Username(), user.Id());
 
-              // TOXO: If not Friend as relationship type, then don't add them.
+              auto const relationship = user.Relationship();
+              // Only show if a real friend
+              if (relationship.DiscordRelationshipType() ==
+                      discordpp::RelationshipType::Friend ||
+                  relationship.GameRelationshipType() ==
+                      discordpp::RelationshipType::Friend) {
+                friends_->AddFriend(std::make_shared<Friend>(user));
+              }
+
               friends_->AddFriend(std::make_shared<Friend>(user));
               return std::nullopt;
             });
