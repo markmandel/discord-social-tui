@@ -32,9 +32,9 @@ App::App(const uint64_t application_id,
     : friends_{std::make_shared<Friends>()},
       application_id_{application_id},
       client_{std::move(client)},
+      voice_{std::make_unique<Voice>(client)},
       left_width_{LEFT_WIDTH},
       dm_selected_{false},
-      voice_selected_{false},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
       show_authenticating_modal_{false},
       profile_{std::make_unique<Profile>(friends_)} {
@@ -50,7 +50,14 @@ App::App(const uint64_t application_id,
   auto profile_button =
       ftxui::Button("Profile", [&] { spdlog::info("pressed profile button"); });
   auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
-  auto voice_button = ftxui::Button("Voice", [&] { voice_selected_ = true; });
+
+  auto voice_button = ftxui::Button("Voice", [&] {
+    auto friend_ = friends_->GetSelectedFriend()
+                          .and_then([&](const auto& friend_) -> std::optional<std::monostate> {
+                            this->voice_->Call(friend_);
+                            return std::monostate{};
+                          });
+  });
 
   // Button row for the top of the right panel
   auto button_row =

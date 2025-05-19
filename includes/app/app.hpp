@@ -16,14 +16,13 @@
 
 #include <memory>
 #include <mutex>
-#include <string>
-#include <vector>
 
 #include "app/friend.hpp"
 #include "discordpp.h"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 #include "profile.hpp"
+#include "voice.hpp"
 
 namespace discord_social_tui {
 
@@ -48,10 +47,12 @@ class App {
   // Discord client
   std::shared_ptr<discordpp::Client> client_;
 
+  // Voice calling
+  std::unique_ptr<Voice> voice_;
+
   // Components
   int left_width_;
   bool dm_selected_;
-  bool voice_selected_;
 
   ftxui::Component menu_;
   ftxui::Component container_;
