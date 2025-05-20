@@ -14,6 +14,44 @@
 
 #include "app/voice.hpp"
 
+#include <spdlog/spdlog.h>
+
+#include <string>
+
 namespace discord_social_tui {
-void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {}
+void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
+  // let's build an Activity.
+  const std::string secret = "call::" + friend_->GetUsername();
+
+  client_->CreateOrJoinLobby(secret, [&](discordpp::ClientResult result,
+                                         unsigned long lobbyId) {
+    // TODO: send an invite to the above friend.
+
+    // Create activity and set properties
+    discordpp::Activity activity;
+    activity.SetType(discordpp::ActivityTypes::Playing);
+    activity.SetDetails("Making a phone call...");
+
+    // set name, state, party size ...
+    discordpp::ActivitySecrets secrets{};
+    secrets.SetJoin(secret);  // SetJoin only takes a single string parameter
+    activity.SetSecrets(secrets);
+
+    client_->UpdateRichPresence(activity, [&](discordpp::ClientResult result) {
+      if (result.Successful()) {
+        client_->SendActivityInvite(
+            friend_->GetId(), "Voice Call", [](discordpp::ClientResult result) {
+              if (result.Successful()) {
+                spdlog::info("Voice Call successfully called");
+              } else {
+                spdlog::error("Failed to send Voice Call invite: {}",
+                              result.Error());
+              }
+            });
+      } else {
+        spdlog::error("Failed to update rich presence: {}", result.Error());
+      }
+    });
+  });
+}
 }  // namespace discord_social_tui

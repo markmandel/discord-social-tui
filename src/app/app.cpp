@@ -52,11 +52,11 @@ App::App(const uint64_t application_id,
   auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
 
   auto voice_button = ftxui::Button("Voice", [&] {
-    auto friend_ = friends_->GetSelectedFriend()
-                          .and_then([&](const auto& friend_) -> std::optional<std::monostate> {
-                            this->voice_->Call(friend_);
-                            return std::monostate{};
-                          });
+    auto friend_ = friends_->GetSelectedFriend().and_then(
+        [&](const auto& friend_) -> std::optional<std::monostate> {
+          this->voice_->Call(friend_);
+          return std::monostate{};
+        });
   });
 
   // Button row for the top of the right panel
