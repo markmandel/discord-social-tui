@@ -90,6 +90,22 @@ void Voice::Run() const {
   client_->SetActivityInviteCreatedCallback(
       [&](const discordpp::ActivityInvite& invite) {
         spdlog::info("Received activity invite: {}", invite.PartyId());
+
+        // this is a voice call, so auto accept and start voice call
+        if (invite.PartyId().starts_with(VOICE_CALL_PREFIX)) {
+          spdlog::info("Invite is a voice invite, so accepting it...");
+          client_->AcceptActivityInvite(
+              invite, [](const discordpp::ClientResult& result,
+                         std::string lobby_secret) {
+                if (!result.Successful()) {
+                  spdlog::error("Could not accept activity invite: {}",
+                                result.Error());
+                  return;
+                }
+
+                spdlog::info("Starting voice call...");
+              });
+        }
       });
 }
 }  // namespace discord_social_tui

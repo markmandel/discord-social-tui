@@ -124,6 +124,9 @@ bool ConfigureLogger(const std::string& log_file_name) {
     spdlog::set_default_logger(logger);
     spdlog::flush_every(std::chrono::seconds(FLUSH_INTERVAL));
 
+    // Set JSON pattern with required fields
+    spdlog::set_pattern(R"({"level":"%l","message":"%v","time":"%Y-%m-%d %H:%M:%S.%e")");
+
     // Sets log level based on SPDLOG_LEVEL environment variable
     spdlog::cfg::load_env_levels();
 
