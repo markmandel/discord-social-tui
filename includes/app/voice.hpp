@@ -21,7 +21,7 @@
 
 namespace discord_social_tui {
 
-static constexpr  std::string VOICE_CALL_PREFIX = "call::";
+static constexpr std::string VOICE_CALL_PREFIX = "call::";
 
 class Voice {
  public:
