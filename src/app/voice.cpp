@@ -30,14 +30,10 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
       lobby_secret,
       [this, friend_, lobby_secret](const discordpp::ClientResult& result,
                                     unsigned long lobbyId) {
-        // TODO: send an invite to the above friend.
-
         if (!result.Successful()) {
           SPDLOG_ERROR("Failed to create or join lobby: {}", result.Error());
           return;
         }
-
-        SPDLOG_INFO("20 - creating activity");
 
         // Create activity and set properties
         auto activity = discordpp::Activity();
@@ -45,8 +41,6 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         activity.SetDetails("Making a phone call...");
         activity.SetSupportedPlatforms(
             discordpp::ActivityGamePlatforms::Desktop);
-
-        SPDLOG_INFO("40 - setting secrets {}", lobby_secret);
 
         // set name, state, party size ...
         auto secrets = discordpp::ActivitySecrets();
@@ -60,8 +54,6 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         party.SetPrivacy(discordpp::ActivityPartyPrivacy::Private);
         activity.SetParty(party);
 
-        SPDLOG_INFO("Join Secret: {}", secrets.Join());
-
         client_->UpdateRichPresence(
             activity, [&](const discordpp::ClientResult& result) {
               if (!result.Successful()) {
@@ -69,8 +61,6 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
                               result.Error());
                 return;
               }
-
-              SPDLOG_INFO("60 - sending activity invite");
 
               client_->SendActivityInvite(
                   friend_->GetId(), "Voice Call",
@@ -80,7 +70,7 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
                                     result.Error());
                       return;
                     }
-                    SPDLOG_INFO("☎️ Voice Call successfully called");
+                    SPDLOG_INFO("☎️ Voice Call successfully invited");
                   });
             });
       });
