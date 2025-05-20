@@ -27,10 +27,9 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
 
   client_->CreateOrJoinLobby(
       lobby_secret,
-      [&](const discordpp::ClientResult& result, unsigned long lobbyId) {
+      [this, friend_, lobby_secret](const discordpp::ClientResult& result,
+                                    unsigned long lobbyId) {
         // TODO: send an invite to the above friend.
-
-        spdlog::info("10 - create or join lobby");
 
         if (!result.Successful()) {
           spdlog::error("Failed to create or join lobby: {}", result.Error());
@@ -40,19 +39,20 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         spdlog::info("20 - creating activity");
 
         // Create activity and set properties
-        discordpp::Activity activity;
+        auto activity = discordpp::Activity();
         activity.SetType(discordpp::ActivityTypes::Playing);
         activity.SetDetails("Making a phone call...");
-        activity.SetSupportedPlatforms(discordpp::ActivityGamePlatforms::Desktop);
+        activity.SetSupportedPlatforms(
+            discordpp::ActivityGamePlatforms::Desktop);
 
-        spdlog::info("40 - setting secrets");
+        spdlog::info("40 - setting secrets {}", lobby_secret);
 
         // set name, state, party size ...
-        auto secrets = discordpp::ActivitySecrets{};
+        auto secrets = discordpp::ActivitySecrets();
         secrets.SetJoin(lobby_secret);
         activity.SetSecrets(secrets);
 
-        spdlog::info("50 - updating rich presence");
+        spdlog::info("Join Secret: {}", secrets.Join());
 
         client_->UpdateRichPresence(
             activity, [&](const discordpp::ClientResult& result) {
