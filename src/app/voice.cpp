@@ -21,9 +21,9 @@
 namespace discord_social_tui {
 void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
   // let's build an Activity.
-  const std::string secret = "call::" + friend_->GetUsername();
+  const std::string lobby_secret = "call::" + friend_->GetUsername();
 
-  client_->CreateOrJoinLobby(secret, [&](const discordpp::ClientResult& result,
+  client_->CreateOrJoinLobby(lobby_secret, [&](const discordpp::ClientResult& result,
                                          unsigned long lobbyId) {
     // TODO: send an invite to the above friend.
 
@@ -34,8 +34,10 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
 
     // set name, state, party size ...
     discordpp::ActivitySecrets secrets{};
-    secrets.SetJoin(secret);  // SetJoin only takes a single string parameter
+    secrets.SetJoin(lobby_secret);
     activity.SetSecrets(secrets);
+
+    spdlog::info("Join Activity Secrets: {}", activity.Secrets().value().Join());
 
     client_->UpdateRichPresence(
         activity, [&](const discordpp::ClientResult& result) {
