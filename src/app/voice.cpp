@@ -52,6 +52,13 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         secrets.SetJoin(lobby_secret);
         activity.SetSecrets(secrets);
 
+        auto party = discordpp::ActivityParty();
+        party.SetId(lobby_secret);
+        party.SetCurrentSize(1);
+        party.SetMaxSize(2);
+        party.SetPrivacy(discordpp::ActivityPartyPrivacy::Private);
+        activity.SetParty(party);
+
         spdlog::info("Join Secret: {}", secrets.Join());
 
         client_->UpdateRichPresence(
