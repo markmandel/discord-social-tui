@@ -24,7 +24,7 @@ namespace discord_social_tui {
 class Voice {
  public:
   explicit Voice(const std::shared_ptr<discordpp::Client> &client)
-      : client_(std::move(client)) {}
+      : client_(client) {}
 
   void Call(std::shared_ptr<Friend> friend_);
 

@@ -28,10 +28,10 @@ namespace discord_social_tui {
 
 // Constructor for the App class
 App::App(const uint64_t application_id,
-         std::shared_ptr<discordpp::Client> client)
+         const std::shared_ptr<discordpp::Client>& client)
     : friends_{std::make_shared<Friends>()},
       application_id_{application_id},
-      client_{std::move(client)},
+      client_{client},
       voice_{std::make_unique<Voice>(client)},
       left_width_{LEFT_WIDTH},
       dm_selected_{false},

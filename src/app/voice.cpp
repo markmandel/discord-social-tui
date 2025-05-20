@@ -23,7 +23,7 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
   // let's build an Activity.
   const std::string secret = "call::" + friend_->GetUsername();
 
-  client_->CreateOrJoinLobby(secret, [&](discordpp::ClientResult result,
+  client_->CreateOrJoinLobby(secret, [&](const discordpp::ClientResult& result,
                                          unsigned long lobbyId) {
     // TODO: send an invite to the above friend.
 

@@ -29,7 +29,8 @@ namespace discord_social_tui {
 class App {
  public:
   // Constructor with application ID and client
-  App(uint64_t application_id, std::shared_ptr<discordpp::Client> client);
+  App(uint64_t application_id,
+      const std::shared_ptr<discordpp::Client>& client);
 
   // Run the application
   int Run();
@@ -64,7 +65,7 @@ class App {
   std::unique_ptr<Profile> profile_;
 
   [[nodiscard]] ftxui::Component AuthenticatingModal(
-      const ftxui::Component &main) const;
+      const ftxui::Component& main) const;
   void StartStatusChangedCallback();
   void Ready();
   void Authorize();
