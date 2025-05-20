@@ -61,7 +61,7 @@ ftxui::Element Profile::RenderEmptyProfile() {
 }
 
 ftxui::Element Profile::RenderUserInfo(
-    discordpp::UserHandle user_handle) const {
+    const discordpp::UserHandle& user_handle) const {
   // Get user information
   const auto username = user_handle.Username();
   const auto display_name = user_handle.DisplayName();
@@ -103,7 +103,7 @@ ftxui::Element Profile::RenderUserInfo(
 }
 
 ftxui::Element Profile::RenderStatusInfo(
-    discordpp::UserHandle user_handle) const {
+    const discordpp::UserHandle& user_handle) const {
   const auto& handle = user_handle;
   std::string status_text;
   ftxui::Color status_color;
@@ -142,7 +142,7 @@ ftxui::Element Profile::RenderStatusInfo(
 }
 
 ftxui::Element Profile::RenderRelationshipInfo(
-    discordpp::UserHandle user_handle) const {
+    const discordpp::UserHandle user_handle) const {
   // Get relationship handle
   auto relationship = user_handle.Relationship();
 

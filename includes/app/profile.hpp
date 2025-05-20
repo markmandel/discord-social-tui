@@ -41,9 +41,9 @@ class Profile {
 
   // Helper methods to create profile sections
   [[nodiscard]] ftxui::Element RenderUserInfo(
-      discordpp::UserHandle user_handle) const;
+      const discordpp::UserHandle &user_handle) const;
   [[nodiscard]] ftxui::Element RenderStatusInfo(
-      discordpp::UserHandle user_handle) const;
+      const discordpp::UserHandle &user_handle) const;
   [[nodiscard]] ftxui::Element RenderRelationshipInfo(
       discordpp::UserHandle user_handle) const;
   [[nodiscard]] static ftxui::Element RenderEmptyProfile();

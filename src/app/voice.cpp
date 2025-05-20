@@ -37,21 +37,23 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
     secrets.SetJoin(secret);  // SetJoin only takes a single string parameter
     activity.SetSecrets(secrets);
 
-    client_->UpdateRichPresence(activity, [&](discordpp::ClientResult result) {
-      if (result.Successful()) {
-        client_->SendActivityInvite(
-            friend_->GetId(), "Voice Call", [](discordpp::ClientResult result) {
-              if (result.Successful()) {
-                spdlog::info("Voice Call successfully called");
-              } else {
-                spdlog::error("Failed to send Voice Call invite: {}",
-                              result.Error());
-              }
-            });
-      } else {
-        spdlog::error("Failed to update rich presence: {}", result.Error());
-      }
-    });
+    client_->UpdateRichPresence(
+        activity, [&](const discordpp::ClientResult& result) {
+          if (result.Successful()) {
+            client_->SendActivityInvite(
+                friend_->GetId(), "Voice Call",
+                [](const discordpp::ClientResult& result) {
+                  if (result.Successful()) {
+                    spdlog::info("Voice Call successfully called");
+                  } else {
+                    spdlog::error("Failed to send Voice Call invite: {}",
+                                  result.Error());
+                  }
+                });
+          } else {
+            spdlog::error("Failed to update rich presence: {}", result.Error());
+          }
+        });
   });
 }
 }  // namespace discord_social_tui
