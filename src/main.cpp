@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <optional>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -142,29 +143,47 @@ bool ConfigureLogger(const std::string& log_file_name) {
   }
 }
 
+// Make string safe for JSON by escaping special characters
+std::string MakeJsonSafe(const std::string& input) {
+  std::string result = input;
+  
+  // Remove CR and LF
+  result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+  result.erase(std::remove(result.begin(), result.end(), '\r'), result.end());
+  
+  // Replace backslashes with double backslashes
+  result = std::regex_replace(result, std::regex("\\\\"), "\\\\");
+  
+  // Replace double quotes with escaped double quotes
+  result = std::regex_replace(result, std::regex("\""), "\\\"");
+  
+  // Replace control characters
+  result = std::regex_replace(result, std::regex("\b"), "\\b");
+  result = std::regex_replace(result, std::regex("\f"), "\\f");
+  result = std::regex_replace(result, std::regex("\t"), "\\t");
+  
+  return result;
+}
+
 void StartDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
   client->AddLogCallback(
       [](const std::string& message,
          const discordpp::LoggingSeverity severity) {
-        // Strip newlines from message
-        std::string clean_message = message;
-        clean_message.erase(std::remove(clean_message.begin(), clean_message.end(), '\n'), 
-                            clean_message.end());
-        clean_message.erase(std::remove(clean_message.begin(), clean_message.end(), '\r'), 
-                            clean_message.end());
+        // Make message safe for JSON
+        std::string json_safe_message = MakeJsonSafe(message);
         
         switch (severity) {
           case discordpp::LoggingSeverity::Verbose:
-            spdlog::log(spdlog::level::trace, clean_message);
+            spdlog::log(spdlog::level::trace, json_safe_message);
             break;
           case discordpp::LoggingSeverity::Info:
-            spdlog::log(spdlog::level::info, clean_message);
+            spdlog::log(spdlog::level::info, json_safe_message);
             break;
           case discordpp::LoggingSeverity::Warning:
-            spdlog::log(spdlog::level::warn, clean_message);
+            spdlog::log(spdlog::level::warn, json_safe_message);
             break;
           case discordpp::LoggingSeverity::Error:
-            spdlog::log(spdlog::level::err, clean_message);
+            spdlog::log(spdlog::level::err, json_safe_message);
             break;
           case discordpp::LoggingSeverity::None:
             break;
