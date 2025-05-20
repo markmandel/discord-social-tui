@@ -17,6 +17,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <optional>
@@ -124,8 +125,10 @@ bool ConfigureLogger(const std::string& log_file_name) {
     spdlog::set_default_logger(logger);
     spdlog::flush_every(std::chrono::seconds(FLUSH_INTERVAL));
 
+    // TODO: use macros for logging so we get source files.
+
     // Set JSON pattern with required fields
-    spdlog::set_pattern(R"({"level":"%l","message":"%v","time":"%Y-%m-%d %H:%M:%S.%e")");
+    spdlog::set_pattern(R"({"level":"%l","message":"%v","time":"%Y-%m-%d %H:%M:%S.%e","source":"%g"})");
 
     // Sets log level based on SPDLOG_LEVEL environment variable
     spdlog::cfg::load_env_levels();
@@ -143,18 +146,25 @@ void StartDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
   client->AddLogCallback(
       [](const std::string& message,
          const discordpp::LoggingSeverity severity) {
+        // Strip newlines from message
+        std::string clean_message = message;
+        clean_message.erase(std::remove(clean_message.begin(), clean_message.end(), '\n'), 
+                            clean_message.end());
+        clean_message.erase(std::remove(clean_message.begin(), clean_message.end(), '\r'), 
+                            clean_message.end());
+        
         switch (severity) {
           case discordpp::LoggingSeverity::Verbose:
-            spdlog::log(spdlog::level::trace, message);
+            spdlog::log(spdlog::level::trace, clean_message);
             break;
           case discordpp::LoggingSeverity::Info:
-            spdlog::log(spdlog::level::info, message);
+            spdlog::log(spdlog::level::info, clean_message);
             break;
           case discordpp::LoggingSeverity::Warning:
-            spdlog::log(spdlog::level::warn, message);
+            spdlog::log(spdlog::level::warn, clean_message);
             break;
           case discordpp::LoggingSeverity::Error:
-            spdlog::log(spdlog::level::err, message);
+            spdlog::log(spdlog::level::err, clean_message);
             break;
           case discordpp::LoggingSeverity::None:
             break;
