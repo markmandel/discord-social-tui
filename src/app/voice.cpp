@@ -19,9 +19,10 @@
 #include <string>
 
 namespace discord_social_tui {
+
 void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
   // let's build an Activity.
-  const std::string lobby_secret = "call::" + friend_->GetUsername();
+  const std::string lobby_secret = VOICE_CALL_PREFIX + friend_->GetUsername();
 
   spdlog::info("Invoking Voice::Call! {}", lobby_secret);
 
@@ -83,5 +84,15 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
                   });
             });
       });
+}
+
+void Voice::Run() const {
+
+  client_->SetActivityInviteCreatedCallback([&](const discordpp::ActivityInvite& invite) {
+    spdlog::info("Received activity invite: {}", invite.PartyId());
+
+
+  });
+
 }
 }  // namespace discord_social_tui

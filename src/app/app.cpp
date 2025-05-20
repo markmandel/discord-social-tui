@@ -268,6 +268,9 @@ int App::Run() {
   // Start the authorization process
   Authorize();
 
+  // Start the voice process
+  voice_->Run();
+
   // Run the application loop
   ftxui::Loop loop(&screen_, container_);
   while (!loop.HasQuitted()) {

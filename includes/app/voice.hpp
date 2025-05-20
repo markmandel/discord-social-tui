@@ -21,12 +21,17 @@
 
 namespace discord_social_tui {
 
+static constexpr  std::string VOICE_CALL_PREFIX = "call::";
+
 class Voice {
  public:
   explicit Voice(const std::shared_ptr<discordpp::Client> &client)
       : client_(client) {}
 
+  /// Initiate a voice call with a friend
   void Call(std::shared_ptr<Friend> friend_);
+  /// Listen for invites and then join a voice lobby
+  void Run() const;
 
  private:
   std::shared_ptr<discordpp::Client> client_;
