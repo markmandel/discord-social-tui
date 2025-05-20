@@ -24,7 +24,7 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
   // let's build an Activity.
   const std::string lobby_secret = VOICE_CALL_PREFIX + friend_->GetUsername();
 
-  spdlog::info("Invoking Voice::Call! {}", lobby_secret);
+  SPDLOG_INFO("Invoking Voice::Call! {}", lobby_secret);
 
   client_->CreateOrJoinLobby(
       lobby_secret,
@@ -33,11 +33,11 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         // TODO: send an invite to the above friend.
 
         if (!result.Successful()) {
-          spdlog::error("Failed to create or join lobby: {}", result.Error());
+          SPDLOG_ERROR("Failed to create or join lobby: {}", result.Error());
           return;
         }
 
-        spdlog::info("20 - creating activity");
+        SPDLOG_INFO("20 - creating activity");
 
         // Create activity and set properties
         auto activity = discordpp::Activity();
@@ -46,7 +46,7 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         activity.SetSupportedPlatforms(
             discordpp::ActivityGamePlatforms::Desktop);
 
-        spdlog::info("40 - setting secrets {}", lobby_secret);
+        SPDLOG_INFO("40 - setting secrets {}", lobby_secret);
 
         // set name, state, party size ...
         auto secrets = discordpp::ActivitySecrets();
@@ -60,50 +60,63 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         party.SetPrivacy(discordpp::ActivityPartyPrivacy::Private);
         activity.SetParty(party);
 
-        spdlog::info("Join Secret: {}", secrets.Join());
+        SPDLOG_INFO("Join Secret: {}", secrets.Join());
 
         client_->UpdateRichPresence(
             activity, [&](const discordpp::ClientResult& result) {
               if (!result.Successful()) {
-                spdlog::error("Failed to update rich presence: {}",
+                SPDLOG_ERROR("Failed to update rich presence: {}",
                               result.Error());
                 return;
               }
 
-              spdlog::info("60 - sending activity invite");
+              SPDLOG_INFO("60 - sending activity invite");
 
               client_->SendActivityInvite(
                   friend_->GetId(), "Voice Call",
                   [](const discordpp::ClientResult& result) {
                     if (!result.Successful()) {
-                      spdlog::error("Failed to send Voice Call invite: {}",
+                      SPDLOG_ERROR("Failed to send Voice Call invite: {}",
                                     result.Error());
                       return;
                     }
-                    spdlog::info("☎️ Voice Call successfully called");
+                    SPDLOG_INFO("☎️ Voice Call successfully called");
                   });
             });
       });
 }
 
 void Voice::Run() const {
+  SPDLOG_INFO("Starting Voice Service...");
+
   client_->SetActivityInviteCreatedCallback(
       [&](const discordpp::ActivityInvite& invite) {
-        spdlog::info("Received activity invite: {}", invite.PartyId());
+        SPDLOG_INFO("Received activity invite: {}", invite.PartyId());
 
         // this is a voice call, so auto accept and start voice call
         if (invite.PartyId().starts_with(VOICE_CALL_PREFIX)) {
-          spdlog::info("Invite is a voice invite, so accepting it...");
+          SPDLOG_INFO("Invite is a voice invite, so accepting it...");
           client_->AcceptActivityInvite(
-              invite, [](const discordpp::ClientResult& result,
-                         std::string lobby_secret) {
+              invite, [&](const discordpp::ClientResult& result,
+                          std::string lobby_secret) {
                 if (!result.Successful()) {
-                  spdlog::error("Could not accept activity invite: {}",
+                  SPDLOG_ERROR("Could not accept activity invite: {}",
                                 result.Error());
                   return;
                 }
 
-                spdlog::info("Starting voice call...");
+                SPDLOG_INFO("Joining lobby with secret: {}", lobby_secret);
+                client_->CreateOrJoinLobby(
+                    lobby_secret,
+                    [this, lobby_secret](const discordpp::ClientResult& result,
+                                         unsigned long lobbyId) {
+                      if (!result.Successful()) {
+                        SPDLOG_ERROR("Failed to join lobby: {}",
+                                     result.Error());
+                      }
+
+                      // TODO: start voice call
+                    });
               });
         }
       });
