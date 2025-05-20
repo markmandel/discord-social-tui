@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#include <algorithm>
 #include <memory>
 
 #include "discordpp.h"
@@ -23,7 +24,7 @@ namespace discord_social_tui {
 class Voice {
  public:
   explicit Voice(const std::shared_ptr<discordpp::Client> &client)
-      : client_(client) {}
+      : client_(std::move(client)) {}
 
   void Call(std::shared_ptr<Friend> friend_);
 

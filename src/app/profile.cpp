@@ -33,9 +33,9 @@ ftxui::Component Profile::Render() const {
   return ftxui::Renderer([this] {
     // grab the currently selected friend
     const auto user_handle = this->friends_->GetSelectedFriend().and_then(
-        [](const std::shared_ptr<Friend>& f)
+        [](const std::shared_ptr<Friend>& selected_friend)
             -> std::optional<discordpp::UserHandle> {
-          return f->GetUserHandle();
+          return selected_friend->GetUserHandle();
         });
 
     if (!user_handle) {
@@ -61,7 +61,7 @@ ftxui::Element Profile::RenderEmptyProfile() {
 }
 
 ftxui::Element Profile::RenderUserInfo(
-    const discordpp::UserHandle& user_handle) const {
+    const discordpp::UserHandle& user_handle) {
   // Get user information
   const auto username = user_handle.Username();
   const auto display_name = user_handle.DisplayName();
@@ -103,7 +103,7 @@ ftxui::Element Profile::RenderUserInfo(
 }
 
 ftxui::Element Profile::RenderStatusInfo(
-    const discordpp::UserHandle& user_handle) const {
+    const discordpp::UserHandle& user_handle) {
   const auto& handle = user_handle;
   std::string status_text;
   ftxui::Color status_color;
@@ -142,7 +142,7 @@ ftxui::Element Profile::RenderStatusInfo(
 }
 
 ftxui::Element Profile::RenderRelationshipInfo(
-    const discordpp::UserHandle user_handle) const {
+    const discordpp::UserHandle& user_handle) {
   // Get relationship handle
   auto relationship = user_handle.Relationship();
 

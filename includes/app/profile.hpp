@@ -40,12 +40,12 @@ class Profile {
   std::shared_ptr<Friends> friends_;
 
   // Helper methods to create profile sections
-  [[nodiscard]] ftxui::Element RenderUserInfo(
-      const discordpp::UserHandle &user_handle) const;
-  [[nodiscard]] ftxui::Element RenderStatusInfo(
-      const discordpp::UserHandle &user_handle) const;
-  [[nodiscard]] ftxui::Element RenderRelationshipInfo(
-      discordpp::UserHandle user_handle) const;
+  [[nodiscard]] static ftxui::Element RenderUserInfo(
+      const discordpp::UserHandle &user_handle);
+  [[nodiscard]] static ftxui::Element RenderStatusInfo(
+      const discordpp::UserHandle &user_handle);
+  [[nodiscard]] static ftxui::Element RenderRelationshipInfo(
+      const discordpp::UserHandle &user_handle);
   [[nodiscard]] static ftxui::Element RenderEmptyProfile();
 };
 
