@@ -62,23 +62,60 @@ std::optional<std::string> ParseApplicationId(
   return GetEnv("DISCORD_APPLICATION_ID");
 }
 
+// Parse log file name from command line arguments
+std::string ParseLogFileName(const std::vector<std::string>& args) {
+  static constexpr size_t PREFIX_LENGTH = 11;  // Length of "--log-file="
+
+  // Default log file name
+  std::string log_file_name = "log";
+
+  // Check command-line arguments
+  // Format: --log-file=FILE_NAME or -l FILE_NAME
+  for (size_t i = 1; i < args.size(); ++i) {
+    const std::string& arg = args[i];
+
+    if (arg.starts_with("--log-file=")) {
+      // --log-file=value format
+      return arg.substr(PREFIX_LENGTH);
+    }
+    if (arg == "--log-file" || arg == "-l") {
+      // --log-file value or -l value format
+      if (i + 1 < args.size()) {
+        ++i;             // Move to next argument
+        return args[i];  // Return the next argument as the value
+      }
+    }
+  }
+
+  // Return default if not specified
+  return log_file_name;
+}
+
 // Show usage information
 void PrintUsage(const std::string& program_name) {
   std::cerr << "Usage: " << program_name << " --application-id=YOUR_APP_ID"
+            << " [--log-file=FILE_NAME]" << '\n';
+  std::cerr << "   or: " << program_name << " -a YOUR_APP_ID"
+            << " [-l FILE_NAME]" << '\n';
+  std::cerr << '\n';
+  std::cerr << "Options:" << '\n';
+  std::cerr
+      << "   --application-id, -a  <ID>    Discord application ID (required)"
+      << '\n';
+  std::cerr << "   --log-file, -l        <FILE>  Log file name (default: 'log')"
             << '\n';
-  std::cerr << "   or: " << program_name << " -a YOUR_APP_ID" << '\n';
   std::cerr << '\n';
   std::cerr << "Environment Variables:" << '\n';
   std::cerr << "   DISCORD_APPLICATION_ID: Discord application ID" << '\n';
 }
 
-bool ConfigureLogger() {
+bool ConfigureLogger(const std::string& log_file_name) {
   constexpr int FLUSH_INTERVAL = 2;
 
   try {
-    // Create a file sink
-    auto file_sink =
-        std::make_shared<spdlog::sinks::basic_file_sink_mt>("log", true);
+    // Create a file sink with the provided file name
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
+        log_file_name, true);
 
     // Create logger with file sink
     auto logger = std::make_shared<spdlog::logger>("logger", file_sink);
@@ -91,7 +128,7 @@ bool ConfigureLogger() {
     spdlog::cfg::load_env_levels();
 
     // Log initialization message
-    spdlog::info("Logging initialized");
+    spdlog::info("Logging initialized with file: {}", log_file_name);
     return true;
   } catch (const spdlog::spdlog_ex& ex) {
     std::cerr << "Log initialization failed: " << ex.what() << '\n';
@@ -124,13 +161,16 @@ void StartDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
 }
 
 int main(int argc, char* argv[]) {
-  // Set up logging first
-  if (!ConfigureLogger()) {
-    return EXIT_FAILURE;
-  }
-
   // Convert C-style arguments to a vector
   std::vector<std::string> args(argv, argv + argc);
+
+  // Parse log file name from command line
+  const std::string log_file_name = ParseLogFileName(args);
+
+  // Set up logging first with the specified log file name
+  if (!ConfigureLogger(log_file_name)) {
+    return EXIT_FAILURE;
+  }
 
   // Parse application ID from command line or environment
   const auto application_id = ParseApplicationId(args);
