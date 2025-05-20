@@ -207,7 +207,7 @@ void App::Authorize() {
   // Set up authentication arguments
   discordpp::AuthorizationArgs args{};
   args.SetClientId(application_id_);
-  args.SetScopes(discordpp::Client::GetDefaultPresenceScopes());
+  args.SetScopes(discordpp::Client::GetDefaultCommunicationScopes());
   args.SetCodeChallenge(code_verifier.Challenge());
 
   // Begin authentication process

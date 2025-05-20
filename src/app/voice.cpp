@@ -23,10 +23,17 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
   // let's build an Activity.
   const std::string lobby_secret = "call::" + friend_->GetUsername();
 
+  spdlog::info("Invoking Voice::Call! {}", lobby_secret);
+
   client_->CreateOrJoinLobby(
       lobby_secret,
       [&](const discordpp::ClientResult& result, unsigned long lobbyId) {
         // TODO: send an invite to the above friend.
+
+        if (!result.Successful()) {
+          spdlog::error("Failed to create or join lobby: {}", result.Error());
+          return;
+        }
 
         // Create activity and set properties
         discordpp::Activity activity;
@@ -43,21 +50,22 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
 
         client_->UpdateRichPresence(
             activity, [&](const discordpp::ClientResult& result) {
-              if (result.Successful()) {
-                client_->SendActivityInvite(
-                    friend_->GetId(), "Voice Call",
-                    [](const discordpp::ClientResult& result) {
-                      if (result.Successful()) {
-                        spdlog::info("Voice Call successfully called");
-                      } else {
-                        spdlog::error("Failed to send Voice Call invite: {}",
-                                      result.Error());
-                      }
-                    });
-              } else {
+              if (!result.Successful()) {
                 spdlog::error("Failed to update rich presence: {}",
                               result.Error());
+                return;
               }
+
+              client_->SendActivityInvite(
+                  friend_->GetId(), "Voice Call",
+                  [](const discordpp::ClientResult& result) {
+                    if (!result.Successful()) {
+                      spdlog::error("Failed to send Voice Call invite: {}",
+                                    result.Error());
+                      return;
+                    }
+                    spdlog::info("☎️ Voice Call successfully called");
+                  });
             });
       });
 }
