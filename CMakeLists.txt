@@ -39,14 +39,14 @@ include(FetchContent)
 FetchContent_Declare(
         ftxui
         GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-        GIT_TAG v6.0.2
+        GIT_TAG v6.1.9
 )
 
 # spdlog for logging
 FetchContent_Declare(
         spdlog
         GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.15.2  # Using the latest stable version
+        GIT_TAG v1.15.3
 )
 
 # Make dependencies available
@@ -125,7 +125,7 @@ file(GLOB_RECURSE SOURCE_FILES
 find_program(CLANG_FORMAT clang-format)
 find_program(CLANG_TIDY clang-tidy)
 
-set(TIDY_CHECKS "-checks=bugprone-*,cppcoreguidelines-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type,-readability-magic-numbers")
+set(TIDY_CHECKS "-checks=bugprone-*,cppcoreguidelines-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type,-readability-magic-numbers,-bugprone-lambda-function-name")
 
 if (CLANG_FORMAT AND CLANG_TIDY)
     add_custom_target(lint

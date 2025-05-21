@@ -21,8 +21,9 @@
 namespace discord_social_tui {
 
 void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
-  // let's build an Activity.
-  const std::string lobby_secret = VOICE_CALL_PREFIX + friend_->GetUsername();
+  auto current_user = client_->GetCurrentUser();
+  const std::string lobby_secret = VOICE_CALL_PREFIX + current_user.Username() +
+                                   ":" + friend_->GetUsername();
 
   SPDLOG_INFO("Invoking Voice::Call! {}", lobby_secret);
 
@@ -58,7 +59,7 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
             activity, [&](const discordpp::ClientResult& result) {
               if (!result.Successful()) {
                 SPDLOG_ERROR("Failed to update rich presence: {}",
-                              result.Error());
+                             result.Error());
                 return;
               }
 
@@ -67,7 +68,7 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
                   [](const discordpp::ClientResult& result) {
                     if (!result.Successful()) {
                       SPDLOG_ERROR("Failed to send Voice Call invite: {}",
-                                    result.Error());
+                                   result.Error());
                       return;
                     }
                     SPDLOG_INFO("☎️ Voice Call successfully invited");
@@ -91,7 +92,7 @@ void Voice::Run() const {
                           std::string lobby_secret) {
                 if (!result.Successful()) {
                   SPDLOG_ERROR("Could not accept activity invite: {}",
-                                result.Error());
+                               result.Error());
                   return;
                 }
 
