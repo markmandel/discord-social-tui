@@ -129,13 +129,14 @@ bool ConfigureLogger(const std::string& log_file_name) {
     // TODO: use macros for logging so we get source files.
 
     // Set JSON pattern with required fields
-    spdlog::set_pattern(R"({"level":"%l","message":"%v","time":"%Y-%m-%d %H:%M:%S.%e","source":"%g"})");
+    spdlog::set_pattern(
+        R"({"level":"%l","message":"%v","time":"%Y-%m-%d %H:%M:%S.%e","source":"%g"})");
 
     // Sets log level based on SPDLOG_LEVEL environment variable
     spdlog::cfg::load_env_levels();
 
     // Log initialization message
-    spdlog::info("Logging initialized with file: {}", log_file_name);
+    SPDLOG_INFO("Logging initialized with file: {}", log_file_name);
     return true;
   } catch (const spdlog::spdlog_ex& ex) {
     std::cerr << "Log initialization failed: " << ex.what() << '\n';
@@ -146,22 +147,22 @@ bool ConfigureLogger(const std::string& log_file_name) {
 // Make string safe for JSON by escaping special characters
 std::string MakeJsonSafe(const std::string& input) {
   std::string result = input;
-  
+
   // Remove CR and LF
   result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
   result.erase(std::remove(result.begin(), result.end(), '\r'), result.end());
-  
+
   // Replace backslashes with double backslashes
   result = std::regex_replace(result, std::regex("\\\\"), "\\\\");
-  
+
   // Replace double quotes with escaped double quotes
   result = std::regex_replace(result, std::regex("\""), "\\\"");
-  
+
   // Replace control characters
   result = std::regex_replace(result, std::regex("\b"), "\\b");
   result = std::regex_replace(result, std::regex("\f"), "\\f");
   result = std::regex_replace(result, std::regex("\t"), "\\t");
-  
+
   return result;
 }
 
@@ -171,19 +172,23 @@ void StartDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
          const discordpp::LoggingSeverity severity) {
         // Make message safe for JSON
         std::string json_safe_message = MakeJsonSafe(message);
-        
+
         switch (severity) {
           case discordpp::LoggingSeverity::Verbose:
-            spdlog::log(spdlog::level::trace, json_safe_message);
+            SPDLOG_LOGGER_CALL(spdlog::default_logger(), spdlog::level::trace,
+                               json_safe_message);
             break;
           case discordpp::LoggingSeverity::Info:
-            spdlog::log(spdlog::level::info, json_safe_message);
+            SPDLOG_LOGGER_CALL(spdlog::default_logger(), spdlog::level::info,
+                               json_safe_message);
             break;
           case discordpp::LoggingSeverity::Warning:
-            spdlog::log(spdlog::level::warn, json_safe_message);
+            SPDLOG_LOGGER_CALL(spdlog::default_logger(), spdlog::level::warn,
+                               json_safe_message);
             break;
           case discordpp::LoggingSeverity::Error:
-            spdlog::log(spdlog::level::err, json_safe_message);
+            SPDLOG_LOGGER_CALL(spdlog::default_logger(), spdlog::level::err,
+                               json_safe_message);
             break;
           case discordpp::LoggingSeverity::None:
             break;
@@ -215,7 +220,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Log the application ID
-  spdlog::info("Starting with application ID: {}", *application_id);
+  SPDLOG_INFO("Starting with application ID: {}", *application_id);
 
   // Create Discord client
   const auto client = std::make_shared<discordpp::Client>();
