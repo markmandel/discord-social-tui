@@ -30,7 +30,7 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
   client_->CreateOrJoinLobby(
       lobby_secret,
       [this, friend_, lobby_secret](const discordpp::ClientResult& result,
-                                    unsigned long lobbyId) {
+                                    unsigned long lobby_id) {
         if (!result.Successful()) {
           SPDLOG_ERROR("Failed to create or join lobby: {}", result.Error());
           return;
@@ -56,7 +56,7 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         activity.SetParty(party);
 
         client_->UpdateRichPresence(
-            activity, [&](const discordpp::ClientResult& result) {
+            activity, [this, friend_, lobby_id](const discordpp::ClientResult& result) {
               if (!result.Successful()) {
                 SPDLOG_ERROR("Failed to update rich presence: {}",
                              result.Error());
@@ -65,13 +65,14 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
 
               client_->SendActivityInvite(
                   friend_->GetId(), "Voice Call",
-                  [](const discordpp::ClientResult& result) {
+                  [this, lobby_id](const discordpp::ClientResult& result) {
                     if (!result.Successful()) {
                       SPDLOG_ERROR("Failed to send Voice Call invite: {}",
                                    result.Error());
                       return;
                     }
                     SPDLOG_INFO("☎️ Voice Call successfully invited");
+                    client_->StartCall(lobby_id);
                   });
             });
       });
@@ -100,13 +101,15 @@ void Voice::Run() const {
                 client_->CreateOrJoinLobby(
                     lobby_secret,
                     [this, lobby_secret](const discordpp::ClientResult& result,
-                                         unsigned long lobbyId) {
+                                         unsigned long lobby_id) {
                       if (!result.Successful()) {
                         SPDLOG_ERROR("Failed to join lobby: {}",
                                      result.Error());
                       }
 
-                      // TODO: start voice call
+                      SPDLOG_INFO("Starting voice call with lobby ID: {}",
+                                  lobby_id);
+                      client_->StartCall(lobby_id);
                     });
               });
         }
