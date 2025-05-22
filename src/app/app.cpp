@@ -39,7 +39,7 @@ App::App(const uint64_t application_id,
       show_authenticating_modal_{false},
       profile_{std::make_unique<Profile>(friends_)} {
   // Log the application ID
-  spdlog::debug("App initialized with Discord Application ID: {}",
+  SPDLOG_INFO("App initialized with Discord Application ID: {}",
                 application_id_);
 
   // Left side menu component - use Friends' internal selection index
@@ -48,7 +48,7 @@ App::App(const uint64_t application_id,
 
   // Action buttons
   auto profile_button =
-      ftxui::Button("Profile", [&] { spdlog::info("pressed profile button"); });
+      ftxui::Button("Profile", [&] { SPDLOG_INFO("pressed profile button"); });
   auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
 
   auto voice_button = ftxui::Button("Voice", [&] {
@@ -96,11 +96,11 @@ void App::StartStatusChangedCallback() {
   client_->SetStatusChangedCallback([&](const discordpp::Client::Status status,
                                         const discordpp::Client::Error error,
                                         int32_t errorDetail) {
-    spdlog::debug("Social SDK Status Change: {}",
+    SPDLOG_INFO("Social SDK Status Change: {}",
                   discordpp::Client::StatusToString(status));
 
     if (error != discordpp::Client::Error::None) {
-      spdlog::error("Social SDK Status Error: {}, Details: {}",
+      SPDLOG_ERROR("Social SDK Status Error: {}, Details: {}",
                     discordpp::Client::ErrorToString(error), errorDetail);
     }
 
@@ -125,13 +125,13 @@ void App::Ready() {
 void App::StartFriends() const {
   // In a real application, these would be actual UserHandles from the Discord
   // SDK For now, we just log that this would happen here
-  spdlog::info("Initializing friends...");
+  SPDLOG_INFO("Initializing friends...");
 
   for (auto& relationship : client_->GetRelationships()) {
     relationship.User().and_then(
         [&](const auto& user) -> std::optional<discordpp::UserHandle> {
           // Log information about the friend we're adding
-          spdlog::debug("Adding friend: {} (ID: {})", user.Username(),
+          SPDLOG_DEBUG("Found friend: {} (ID: {})", user.Username(),
                         user.Id());
 
           // Only show if a real friend.
@@ -153,7 +153,7 @@ void App::StartFriends() const {
       [&](uint64_t userId, bool isDiscordRelationshipUpdate) {
         client_->GetUser(userId).and_then(
             [&](const auto& user) -> std::optional<discordpp::UserHandle> {
-              spdlog::debug("🔥 Relationship created: {} (ID: {})",
+              SPDLOG_INFO("🔥 Relationship created: {} (ID: {})",
                             user.Username(), user.Id());
 
               auto const relationship = user.Relationship();
@@ -172,7 +172,7 @@ void App::StartFriends() const {
 
   client_->SetRelationshipDeletedCallback(
       [&](uint64_t userId, bool isDiscordRelationshipUpdate) {
-        spdlog::debug("🔥 Relationship deleted (ID: {})", userId);
+        SPDLOG_INFO("🔥 Relationship deleted (ID: {})", userId);
         friends_->RemoveFriend(userId);
       });
 }
@@ -186,13 +186,13 @@ void App::Presence() const {
   activity.SetDetails("Better TUI than me...");
 
   // Update rich presence
-  spdlog::debug("Updating Discord rich presence...");
+  SPDLOG_INFO("Updating Discord rich presence...");
   client_->UpdateRichPresence(
       activity, [](const discordpp::ClientResult& result) {
         if (result.Successful()) {
-          spdlog::info("Rich Presence updated successfully");
+          SPDLOG_INFO("Rich Presence updated successfully");
         } else {
-          spdlog::error("Rich Presence update failed: {}", result.Error());
+          SPDLOG_ERROR("Rich Presence update failed: {}", result.Error());
         }
       });
 }
@@ -216,12 +216,12 @@ void App::Authorize() {
                                const std::string& code,
                                const std::string& redirect_uri) {
     if (!result.Successful()) {
-      spdlog::error("Authorization failed: {}", result.Error());
+      SPDLOG_ERROR("Authorization failed: {}", result.Error());
       show_authenticating_modal_ = false;
       return;
     }
 
-    spdlog::info("Authorization successful, exchanging code for token");
+    SPDLOG_INFO("Authorization successful, exchanging code for token");
 
     // Exchange auth code for access token
     client_->GetToken(
@@ -235,11 +235,11 @@ void App::Authorize() {
             const discordpp::AuthorizationTokenType token_type,
             int32_t expires_in, const std::string& scope) {
           if (!result.Successful()) {
-            spdlog::error("Token exchange failed: {}", result.Error());
+            SPDLOG_ERROR("Token exchange failed: {}", result.Error());
             return;
           }
 
-          spdlog::info(
+          SPDLOG_INFO(
               "Token exchange successful, access token expires in {} seconds",
               expires_in);
 
@@ -247,10 +247,10 @@ void App::Authorize() {
           client_->UpdateToken(token_type, std::string(access_token),
                                [this](const discordpp::ClientResult& result) {
                                  if (!result.Successful()) {
-                                   spdlog::error("Token update failed: {}",
+                                   SPDLOG_ERROR("Token update failed: {}",
                                                  result.Error());
                                  } else {
-                                   spdlog::info("Connection Social SDK...");
+                                   SPDLOG_INFO("Connection Social SDK...");
                                    this->client_->Connect();
                                    // The modal will be hidden when the client
                                    // is ready via the status changed callback

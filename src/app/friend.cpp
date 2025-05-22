@@ -125,7 +125,7 @@ static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);
 
 void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
-  spdlog::debug("Adding friend: {}", friend_->GetUsername());
+  SPDLOG_DEBUG("Adding friend: {}", friend_->GetUsername());
 
   // Store username for logging as we'll be moving the friend
   std::string username = friend_->GetUsername();
@@ -142,7 +142,7 @@ void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
 
   // Insert the friend at the correct position
   friends_.insert(pos, std::move(friend_));
-  spdlog::debug("Friend {} inserted at position {}", username,
+  SPDLOG_DEBUG("Friend {} inserted at position {}", username,
                 std::distance(friends_.begin(), pos));
   selected.and_then(
       [&](const auto& selected_friend) -> std::optional<std::monostate> {
@@ -157,7 +157,7 @@ void Friends::RemoveFriend(uint64_t user_id) {
       [user_id](const auto& friend_) { return friend_->GetId() == user_id; });
 
   if (iterator != friends_.end()) {
-    spdlog::debug("Removing friend: {}", (*iterator)->GetUsername());
+    SPDLOG_DEBUG("Removing friend: {}", (*iterator)->GetUsername());
     auto selected = GetSelectedFriend();
     friends_.erase(iterator);
 

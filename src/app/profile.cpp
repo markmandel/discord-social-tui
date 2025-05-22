@@ -25,7 +25,7 @@ namespace discord_social_tui {
 
 Profile::Profile(std::shared_ptr<Friends> friends)
     : friends_(std::move(friends)) {
-  spdlog::debug("Profile created with Friends reference");
+  SPDLOG_INFO("Profile created with Friends reference");
 }
 
 ftxui::Component Profile::Render() const {
