@@ -56,7 +56,8 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
         activity.SetParty(party);
 
         client_->UpdateRichPresence(
-            activity, [this, friend_, lobby_id](const discordpp::ClientResult& result) {
+            activity,
+            [this, friend_, lobby_id](const discordpp::ClientResult& result) {
               if (!result.Successful()) {
                 SPDLOG_ERROR("Failed to update rich presence: {}",
                              result.Error());
