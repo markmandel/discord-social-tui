@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <optional>
+#include <ranges>
 #include <regex>
 #include <string>
 #include <vector>
@@ -149,8 +150,8 @@ std::string MakeJsonSafe(const std::string& input) {
   std::string result = input;
 
   // Remove CR and LF
-  result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
-  result.erase(std::remove(result.begin(), result.end(), '\r'), result.end());
+  result.erase(std::ranges::remove(result, '\n').begin(), result.end());
+  result.erase(std::ranges::remove(result, '\r').begin(), result.end());
 
   // Replace backslashes with double backslashes
   result = std::regex_replace(result, std::regex("\\\\"), "\\\\");
