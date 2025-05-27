@@ -20,8 +20,8 @@
 
 namespace discord_social_tui {
 
-void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
-  auto current_user = client_->GetCurrentUser();
+void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) const {
+  const auto current_user = client_->GetCurrentUser();
   const std::string lobby_secret = VOICE_CALL_PREFIX + current_user.Username() +
                                    ":" + friend_->GetUsername();
 
@@ -66,7 +66,8 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
 
               client_->SendActivityInvite(
                   friend_->GetId(), "Voice Call",
-                  [this, friend_, lobby_id](const discordpp::ClientResult& result) {
+                  [this, friend_,
+                   lobby_id](const discordpp::ClientResult& result) {
                     if (!result.Successful()) {
                       SPDLOG_ERROR("Failed to send Voice Call invite: {}",
                                    result.Error());
@@ -112,8 +113,16 @@ void Voice::Run() const {
                       SPDLOG_INFO("Starting voice call with lobby ID: {}",
                                   lobby_id);
                       auto call = client_->StartCall(lobby_id);
-                      // TODO: once you have friends, look them up by Id.
 
+                      const auto participants = call.GetParticipants();
+                      if (participants.empty()) {
+                        SPDLOG_WARN("No participants in the call");
+                        return;
+                      }
+                      friends_->GetFriendById(participants[0]).and_then([call](const std::shared_ptr<Friend>& friend_)-> std::optional<std::monostate> {
+                        friend_->SetVoiceCall(call);
+                        return std::monostate{};
+                      });
                     });
               });
         }

@@ -25,16 +25,18 @@ static constexpr std::string VOICE_CALL_PREFIX = "call::";
 
 class Voice {
  public:
-  explicit Voice(const std::shared_ptr<discordpp::Client> &client)
-      : client_(client) {}
+  explicit Voice(const std::shared_ptr<discordpp::Client> &client,
+                 const std::shared_ptr<Friends> &friends)
+      : client_(client), friends_(friends) {}
 
   /// Initiate a voice call with a friend
-  void Call(std::shared_ptr<Friend> friend_);
+  void Call(std::shared_ptr<Friend> friend_) const;
   /// Listen for invites and then join a voice lobby
   void Run() const;
 
  private:
   std::shared_ptr<discordpp::Client> client_;
+  std::shared_ptr<Friends> friends_;
 };
 
 }  // namespace discord_social_tui
