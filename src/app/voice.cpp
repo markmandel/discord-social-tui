@@ -66,14 +66,15 @@ void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) {
 
               client_->SendActivityInvite(
                   friend_->GetId(), "Voice Call",
-                  [this, lobby_id](const discordpp::ClientResult& result) {
+                  [this, friend_, lobby_id](const discordpp::ClientResult& result) {
                     if (!result.Successful()) {
                       SPDLOG_ERROR("Failed to send Voice Call invite: {}",
                                    result.Error());
                       return;
                     }
                     SPDLOG_INFO("☎️ Voice Call successfully invited");
-                    client_->StartCall(lobby_id);
+                    auto call = client_->StartCall(lobby_id);
+                    friend_->SetVoiceCall(call);
                   });
             });
       });
@@ -110,7 +111,9 @@ void Voice::Run() const {
 
                       SPDLOG_INFO("Starting voice call with lobby ID: {}",
                                   lobby_id);
-                      client_->StartCall(lobby_id);
+                      auto call = client_->StartCall(lobby_id);
+                      // TODO: once you have friends, look them up by Id.
+
                     });
               });
         }

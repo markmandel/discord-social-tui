@@ -56,8 +56,13 @@ class Friend {
   // Get status priority (lower number = higher priority)
   static int GetStatusPriority(discordpp::StatusType status);
 
+  // Voice call management
+  [[nodiscard]] const std::optional<discordpp::Call>& GetVoiceCall() const;
+  void SetVoiceCall(const std::optional<discordpp::Call>& call);
+
  private:
   discordpp::UserHandle user_handle_;
+  std::optional<discordpp::Call> voice_call_;
 };
 
 // A Friends adapter class for FTXUI menus

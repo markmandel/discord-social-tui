@@ -121,6 +121,14 @@ bool Friend::operator!=(const Friend& other) const {
   return !(*this == other);
 }
 
+const std::optional<discordpp::Call>& Friend::GetVoiceCall() const {
+  return voice_call_;
+}
+
+void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
+  voice_call_ = call;
+}
+
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);
 
