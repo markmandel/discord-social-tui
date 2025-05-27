@@ -143,7 +143,7 @@ void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
   // Insert the friend at the correct position
   friends_.insert(pos, std::move(friend_));
   SPDLOG_DEBUG("Friend {} inserted at position {}", username,
-                std::distance(friends_.begin(), pos));
+               std::distance(friends_.begin(), pos));
   selected.and_then(
       [&](const auto& selected_friend) -> std::optional<std::monostate> {
         SetSelectedIndexByFriendId(selected_friend->GetId());

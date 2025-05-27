@@ -40,7 +40,7 @@ App::App(const uint64_t application_id,
       profile_{std::make_unique<Profile>(friends_)} {
   // Log the application ID
   SPDLOG_INFO("App initialized with Discord Application ID: {}",
-                application_id_);
+              application_id_);
 
   // Left side menu component - use Friends' internal selection index
   menu_ = ftxui::Menu(friends_.get(), friends_->GetSelectedIndex(),
@@ -97,11 +97,11 @@ void App::StartStatusChangedCallback() {
                                         const discordpp::Client::Error error,
                                         int32_t errorDetail) {
     SPDLOG_INFO("Social SDK Status Change: {}",
-                  discordpp::Client::StatusToString(status));
+                discordpp::Client::StatusToString(status));
 
     if (error != discordpp::Client::Error::None) {
       SPDLOG_ERROR("Social SDK Status Error: {}, Details: {}",
-                    discordpp::Client::ErrorToString(error), errorDetail);
+                   discordpp::Client::ErrorToString(error), errorDetail);
     }
 
     if (status == discordpp::Client::Status::Ready) {
@@ -131,8 +131,7 @@ void App::StartFriends() const {
     relationship.User().and_then(
         [&](const auto& user) -> std::optional<discordpp::UserHandle> {
           // Log information about the friend we're adding
-          SPDLOG_DEBUG("Found friend: {} (ID: {})", user.Username(),
-                        user.Id());
+          SPDLOG_DEBUG("Found friend: {} (ID: {})", user.Username(), user.Id());
 
           // Only show if a real friend.
           if (relationship.DiscordRelationshipType() ==
@@ -154,7 +153,7 @@ void App::StartFriends() const {
         client_->GetUser(userId).and_then(
             [&](const auto& user) -> std::optional<discordpp::UserHandle> {
               SPDLOG_INFO("🔥 Relationship created: {} (ID: {})",
-                            user.Username(), user.Id());
+                          user.Username(), user.Id());
 
               auto const relationship = user.Relationship();
               // Only show if a real friend
@@ -248,7 +247,7 @@ void App::Authorize() {
                                [this](const discordpp::ClientResult& result) {
                                  if (!result.Successful()) {
                                    SPDLOG_ERROR("Token update failed: {}",
-                                                 result.Error());
+                                                result.Error());
                                  } else {
                                    SPDLOG_INFO("Connection Social SDK...");
                                    this->client_->Connect();
