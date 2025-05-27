@@ -44,7 +44,8 @@ App::App(const uint64_t application_id,
 
   // Left side menu component - use Friends' internal selection index
   menu_ = ftxui::Menu(friends_.get(), friends_->GetSelectedIndex(),
-                      ftxui::MenuOption::Vertical());
+                      ftxui::MenuOption::Vertical()) |
+          ftxui::vscroll_indicator | ftxui::yframe;
 
   // Action buttons
   auto profile_button =
