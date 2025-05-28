@@ -38,25 +38,19 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
           this->voice_->Call(friend_);
           return std::monostate{};
         });
+    voice_button_->Detach();
+    horizontal_container_->Add(disconnect_button_);
   });
 
   disconnect_button_ =
       ftxui::Button("🔉 Disconnect", [] { SPDLOG_INFO("Hung Up!"); });
+
+  horizontal_container_ = ftxui::Container::Horizontal(
+      {profile_button_, dm_button_, voice_button_});
 }
 
-ftxui::Component Buttons::Render() const {
-  const auto call = friends_->GetSelectedFriend().and_then(
-      [](const auto& friend_) -> std::optional<discordpp::Call> {
-        return friend_->GetVoiceCall();
-      });
-
-  if (call) {
-    return ftxui::Container::Horizontal(
-        {profile_button_, dm_button_, disconnect_button_});
-  }
-
-  return ftxui::Container::Horizontal(
-      {profile_button_, dm_button_, voice_button_});
+const ftxui::Component& Buttons::GetComponent() const {
+  return horizontal_container_;
 }
 
 }  // namespace discord_social_tui

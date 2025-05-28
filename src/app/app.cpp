@@ -49,7 +49,7 @@ App::App(const uint64_t application_id,
 
   // Content container with button row and content area
   const auto content = ftxui::Container::Vertical({
-      buttons_->Render(),
+      buttons_->GetComponent(),
       profile_->Render(),
   });
 

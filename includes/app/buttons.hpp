@@ -28,7 +28,7 @@ class Buttons {
  public:
   explicit Buttons(const std::shared_ptr<Friends>& friends,
                    const std::shared_ptr<Voice>& voice);
-  [[nodiscard]] ftxui::Component Render() const;
+  [[nodiscard]] const ftxui::Component& GetComponent() const;
 
  private:
   std::shared_ptr<Friends> friends_;
@@ -37,6 +37,7 @@ class Buttons {
   ftxui::Component voice_button_;
   ftxui::Component profile_button_;
   ftxui::Component dm_button_;
+  ftxui::Component horizontal_container_;
 };
 
 }  // namespace discord_social_tui
