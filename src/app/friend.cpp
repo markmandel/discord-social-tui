@@ -60,7 +60,7 @@ std::string Friend::GetFormattedDisplayName() const {
   }
 
   if (GetVoiceCall().has_value()) {
-    status_emoji += "📞";  // Phone emoji for voice call
+    status_emoji += "🔉";
   }
 
   return status_emoji + " " + GetDisplayName();
