@@ -29,6 +29,8 @@ class Buttons {
   explicit Buttons(const std::shared_ptr<Friends>& friends,
                    const std::shared_ptr<Voice>& voice);
   [[nodiscard]] const ftxui::Component& GetComponent() const;
+  /// Called when the selected friend changes, to update the UI
+  void SelectedFriendChange() const;
 
  private:
   std::shared_ptr<Friends> friends_;
