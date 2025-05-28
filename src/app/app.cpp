@@ -32,12 +32,12 @@ App::App(const uint64_t application_id,
     : friends_{std::make_shared<Friends>()},
       application_id_{application_id},
       client_{client},
-      voice_{std::make_unique<Voice>(client, friends_)},
+      voice_{std::make_shared<Voice>(client, friends_)},
       left_width_{LEFT_WIDTH},
-      dm_selected_{false},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
       show_authenticating_modal_{false},
-      profile_{std::make_unique<Profile>(friends_)} {
+      profile_{std::make_unique<Profile>(friends_)},
+      buttons_{std::make_shared<Buttons>(friends_, voice_)} {
   // Log the application ID
   SPDLOG_INFO("App initialized with Discord Application ID: {}",
               application_id_);
@@ -47,26 +47,9 @@ App::App(const uint64_t application_id,
                       ftxui::MenuOption::Vertical()) |
           ftxui::vscroll_indicator | ftxui::yframe;
 
-  // Action buttons
-  auto profile_button =
-      ftxui::Button("Profile", [&] { SPDLOG_INFO("pressed profile button"); });
-  auto dm_button = ftxui::Button("Message", [&] { dm_selected_ = true; });
-
-  auto voice_button = ftxui::Button("Voice", [&] {
-    auto friend_ = friends_->GetSelectedFriend().and_then(
-        [&](const auto& friend_) -> std::optional<std::monostate> {
-          this->voice_->Call(friend_);
-          return std::monostate{};
-        });
-  });
-
-  // Button row for the top of the right panel
-  auto button_row =
-      ftxui::Container::Horizontal({profile_button, dm_button, voice_button});
-
   // Content container with button row and content area
   const auto content = ftxui::Container::Vertical({
-      button_row,
+      buttons_->Render(),
       profile_->Render(),
   });
 

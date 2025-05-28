@@ -17,6 +17,7 @@
 #include <memory>
 #include <mutex>
 
+#include "app/buttons.hpp"
 #include "app/friend.hpp"
 #include "discordpp.h"
 #include "ftxui/component/component.hpp"
@@ -49,11 +50,10 @@ class App {
   std::shared_ptr<discordpp::Client> client_;
 
   // Voice calling
-  std::unique_ptr<Voice> voice_;
+  std::shared_ptr<Voice> voice_;
 
   // Components
   int left_width_;
-  bool dm_selected_;
 
   ftxui::Component menu_;
   ftxui::Component container_;
@@ -63,6 +63,7 @@ class App {
   // Flag to ensure Ready() is only called once
   std::once_flag ready_flag_;
   std::unique_ptr<Profile> profile_;
+  std::shared_ptr<Buttons> buttons_;
 
   [[nodiscard]] ftxui::Component AuthenticatingModal(
       const ftxui::Component& main) const;
