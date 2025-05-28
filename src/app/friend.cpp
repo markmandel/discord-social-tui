@@ -139,9 +139,6 @@ static_assert(std::totally_ordered<Friend>);
 void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
   SPDLOG_DEBUG("Adding friend: {}", friend_->GetUsername());
 
-  // Store username for logging as we'll be moving the friend
-  std::string username = friend_->GetUsername();
-
   auto selected = GetSelectedFriend();
 
   // Find the position to insert using binary search

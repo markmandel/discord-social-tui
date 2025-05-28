@@ -20,7 +20,8 @@
 
 namespace discord_social_tui {
 
-void Voice::Call(std::shared_ptr<discord_social_tui::Friend> friend_) const {
+void Voice::Call(
+    const std::shared_ptr<discord_social_tui::Friend>& friend_) const {
   const auto current_user = client_->GetCurrentUser();
   const std::string lobby_secret = VOICE_CALL_PREFIX + current_user.Username() +
                                    ":" + friend_->GetUsername();
@@ -119,10 +120,13 @@ void Voice::Run() const {
                         SPDLOG_WARN("No participants in the call");
                         return;
                       }
-                      friends_->GetFriendById(participants[0]).and_then([call](const std::shared_ptr<Friend>& friend_)-> std::optional<std::monostate> {
-                        friend_->SetVoiceCall(call);
-                        return std::monostate{};
-                      });
+                      friends_->GetFriendById(participants[0])
+                          .and_then(
+                              [call](const std::shared_ptr<Friend>& friend_)
+                                  -> std::optional<std::monostate> {
+                                friend_->SetVoiceCall(call);
+                                return std::monostate{};
+                              });
                     });
               });
         }

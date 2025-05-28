@@ -30,7 +30,7 @@ class Voice {
       : client_(client), friends_(friends) {}
 
   /// Initiate a voice call with a friend
-  void Call(std::shared_ptr<Friend> friend_) const;
+  void Call(const std::shared_ptr<Friend> &friend_) const;
   /// Listen for invites and then join a voice lobby
   void Run() const;
 
