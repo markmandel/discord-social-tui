@@ -51,7 +51,7 @@ ftxui::Component Buttons::Render() const {
       });
 
   if (call) {
-    ftxui::Container::Horizontal(
+    return ftxui::Container::Horizontal(
         {profile_button_, dm_button_, disconnect_button_});
   }
 
