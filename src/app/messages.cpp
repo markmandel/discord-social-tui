@@ -26,8 +26,6 @@ Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
                    const std::shared_ptr<Friends>& friends)
     : client_(client), friends_(friends) {
   // Initialize UI components
-
-
   auto option = ftxui::InputOption();
   option.multiline = true;
   option.transform = [](ftxui::InputState state) {
@@ -75,7 +73,24 @@ void Messages::Run() const {
 }
 
 ftxui::Component Messages::Render() {
-  // Create messages display area
+  // Create header area (friend name)
+  const auto header_display = ftxui::Renderer([this] {
+    const auto selected_friend = friends_->GetSelectedFriend();
+    if (selected_friend.has_value()) {
+      const auto& friend_ = selected_friend.value();
+      return ftxui::vbox({
+          ftxui::text("Messages with " + friend_->GetDisplayName()) | ftxui::bold,
+          ftxui::separator()
+      });
+    } else {
+      return ftxui::vbox({
+          ftxui::text("Select a friend to view messages") | ftxui::dim,
+          ftxui::separator()
+      });
+    }
+  });
+
+  // Create scrollable messages area (only the message list scrolls)
   const auto messages_display = ftxui::Renderer([this] {
     ftxui::Elements message_elements;
 
@@ -83,10 +98,6 @@ ftxui::Component Messages::Render() {
     const auto selected_friend = friends_->GetSelectedFriend();
     if (selected_friend.has_value()) {
       const auto& friend_ = selected_friend.value();
-      message_elements.push_back(
-          ftxui::text("Messages with " + friend_->GetDisplayName()) |
-          ftxui::bold);
-      message_elements.push_back(ftxui::separator());
 
       // Get and display all messages from this friend
       const auto& messages = friend_->GetMessages();
@@ -110,23 +121,29 @@ ftxui::Component Messages::Render() {
                            ftxui::text(message.Content())}));
         }
       }
-    } else {
-      message_elements.push_back(
-          ftxui::text("Select a friend to view messages") | ftxui::dim);
     }
 
-    message_elements.push_back(ftxui::separator());
-    return ftxui::vbox(message_elements) | ftxui::vscroll_indicator |
-           ftxui::yframe;
+    return ftxui::vbox(message_elements) | ftxui::vscroll_indicator | ftxui::yframe;
   });
 
-  // Create input area with text field and send button
+  // Create input area with text field and send button (fixed at bottom)
   auto input_area = ftxui::Container::Horizontal(
       {input_component_ | ftxui::flex, send_button_});
+  
+  // Wrap input area with separator
+  auto input_with_separator = ftxui::Renderer(input_area, [input_area] {
+    return ftxui::vbox({
+        ftxui::separator(),
+        input_area->Render()
+    });
+  });
 
-  // Combine messages display and input area
-  messages_container_ =
-      ftxui::Container::Vertical({messages_display | ftxui::flex, input_area});
+  // Combine header, scrollable messages, and fixed input area
+  messages_container_ = ftxui::Container::Vertical({
+      header_display,
+      messages_display | ftxui::flex,  // Messages take up remaining space and scroll
+      input_with_separator  // Input area stays at bottom
+  });
 
   return messages_container_;
 }
