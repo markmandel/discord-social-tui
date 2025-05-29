@@ -49,10 +49,22 @@ App::App(const uint64_t application_id,
   menu_ = ftxui::Menu(friends_.get(), friends_->GetSelectedIndex(), options) |
           ftxui::vscroll_indicator | ftxui::yframe;
 
+  auto profile_component = profile_->Render();
   // Content container with button row and content area
   const auto content = ftxui::Container::Vertical({
       buttons_->GetComponent(),
-      profile_->Render(),
+      profile_component,
+  });
+
+  buttons_->AddProfileClickHandler([profile_component, content]() {
+    if (profile_component->Parent() != nullptr) {
+      return;
+    }
+    content->Add(profile_component);
+  });
+
+  buttons_->AddDMClickHandler([profile_component, content]() {
+    profile_component->Detach();
   });
 
   // Horizontal layout with the constrained menu

@@ -15,7 +15,9 @@
 #pragma once
 
 #include <ftxui/component/component_base.hpp>
+#include <functional>
 #include <memory>
+#include <vector>
 
 #include "../lib/discord_social_sdk/include/discordpp.h"
 #include "friend.hpp"
@@ -30,8 +32,15 @@ class Buttons {
   explicit Buttons(const std::shared_ptr<Friends>& friends,
                    const std::shared_ptr<Voice>& voice);
   [[nodiscard]] const ftxui::Component& GetComponent() const;
-  /// Called when the selected friend changes, to update the UI
+  /// Call a voice state could potentially have changed, so we can update
+  /// buttons.
   void VoiceChanged() const;
+
+  /// Add a click handler function to be called when DM button is clicked
+  void AddDMClickHandler(std::function<void()> handler);
+
+  /// Add a click handler function to be called when Profile button is clicked
+  void AddProfileClickHandler(std::function<void()> handler);
 
  private:
   std::shared_ptr<Friends> friends_;
@@ -41,6 +50,14 @@ class Buttons {
   ftxui::Component profile_button_;
   ftxui::Component dm_button_;
   ftxui::Component horizontal_container_;
+  std::vector<std::function<void()>> dm_click_handlers_;
+  std::vector<std::function<void()>> profile_click_handlers_;
+
+  /// Call all registered DM click handlers
+  void OnDMClick() const;
+
+  /// Call all registered Profile click handlers
+  void OnProfileClick() const;
 };
 
 }  // namespace discord_social_tui

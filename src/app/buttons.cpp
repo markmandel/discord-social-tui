@@ -25,11 +25,14 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
                  const std::shared_ptr<Voice>& voice)
     : friends_(friends), voice_(voice) {
   // Initialize button components
-  profile_button_ =
-      ftxui::Button("Profile", [] { SPDLOG_INFO("pressed profile button"); });
+  profile_button_ = ftxui::Button("Profile", [this] {
+    SPDLOG_INFO("pressed profile button");
+    OnProfileClick();
+  });
 
-  dm_button_ = ftxui::Button("Message", [] {
-    // TODO: Handle DM selection
+  dm_button_ = ftxui::Button("Message", [this] {
+    SPDLOG_INFO("pressed DM button");
+    OnDMClick();
   });
 
   voice_button_ = ftxui::Button("🔉 Voice", [this] {
@@ -71,6 +74,26 @@ void Buttons::VoiceChanged() const {
       disconnect_button_->Detach();
       horizontal_container_->Add(voice_button_);
     }
+  }
+}
+
+void Buttons::AddDMClickHandler(std::function<void()> handler) {
+  dm_click_handlers_.push_back(std::move(handler));
+}
+
+void Buttons::AddProfileClickHandler(std::function<void()> handler) {
+  profile_click_handlers_.push_back(std::move(handler));
+}
+
+void Buttons::OnDMClick() const {
+  for (const auto& handler : dm_click_handlers_) {
+    handler();
+  }
+}
+
+void Buttons::OnProfileClick() const {
+  for (const auto& handler : profile_click_handlers_) {
+    handler();
   }
 }
 
