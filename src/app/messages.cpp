@@ -95,8 +95,7 @@ ftxui::Component Messages::Render() {
     ftxui::Elements message_elements;
 
     // Get currently selected friend
-    const auto selected_friend = friends_->GetSelectedFriend();
-    if (selected_friend.has_value()) {
+    if (const auto selected_friend = friends_->GetSelectedFriend()) {
       const auto& friend_ = selected_friend.value();
 
       // Get and display all messages from this friend
