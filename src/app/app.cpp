@@ -43,7 +43,7 @@ App::App(const uint64_t application_id,
               application_id_);
 
   auto options = ftxui::MenuOption::Vertical();
-  options.on_change = [&]() { buttons_->SelectedFriendChange(); };
+  options.on_change = [&]() { buttons_->VoiceChanged(); };
   // Left side menu component - use Friends' internal selection index
   menu_ = ftxui::Menu(friends_.get(), friends_->GetSelectedIndex(), options) |
           ftxui::vscroll_indicator | ftxui::yframe;

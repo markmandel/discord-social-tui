@@ -17,6 +17,7 @@
 #include <ftxui/component/component_base.hpp>
 #include <memory>
 
+#include "../lib/discord_social_sdk/include/discordpp.h"
 #include "friend.hpp"
 #include "voice.hpp"
 
@@ -30,7 +31,7 @@ class Buttons {
                    const std::shared_ptr<Voice>& voice);
   [[nodiscard]] const ftxui::Component& GetComponent() const;
   /// Called when the selected friend changes, to update the UI
-  void SelectedFriendChange() const;
+  void VoiceChanged() const;
 
  private:
   std::shared_ptr<Friends> friends_;

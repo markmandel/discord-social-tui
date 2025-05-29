@@ -20,8 +20,7 @@
 
 namespace discord_social_tui {
 
-void Voice::Call(
-    const std::shared_ptr<discord_social_tui::Friend>& friend_) const {
+void Voice::Call(const std::shared_ptr<Friend>& friend_) const {
   const auto current_user = client_->GetCurrentUser();
   const std::string lobby_secret = VOICE_CALL_PREFIX + current_user.Username() +
                                    ":" + friend_->GetUsername();

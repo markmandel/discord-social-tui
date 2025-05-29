@@ -33,6 +33,7 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
   });
 
   voice_button_ = ftxui::Button("🔉 Voice", [this] {
+    SPDLOG_INFO("Starting voice call...");
     friends_->GetSelectedFriend().and_then(
         [&](const auto& friend_) -> std::optional<std::monostate> {
           this->voice_->Call(friend_);
@@ -40,8 +41,8 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
         });
   });
 
-  disconnect_button_ =
-      ftxui::Button("🔇 Disconnect", [] { SPDLOG_INFO("Hung Up!"); });
+  disconnect_button_ = ftxui::Button(
+      "🔇 Disconnect", [] { SPDLOG_INFO("Disconnecting call!"); });
 
   horizontal_container_ = ftxui::Container::Horizontal(
       {profile_button_, dm_button_, voice_button_});
@@ -51,7 +52,7 @@ const ftxui::Component& Buttons::GetComponent() const {
   return horizontal_container_;
 }
 
-void Buttons::SelectedFriendChange() const {
+void Buttons::VoiceChanged() const {
   const auto call = friends_->GetSelectedFriend().and_then(
       [](const auto& friend_) -> std::optional<discordpp::Call> {
         return friend_->GetVoiceCall();
