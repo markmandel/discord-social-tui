@@ -135,8 +135,8 @@ void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
 
 void Friend::ClearVoiceCall() { voice_call_.reset(); }
 
-void Friend::AddMessageHandler(const discordpp::MessageHandle& message_handle) {
-  message_handlers_.push_back(message_handle);
+void Friend::AddMessage(const discordpp::MessageHandle& message) {
+  message_handlers_.push_back(message);
 }
 
 static_assert(std::equality_comparable<Friend>);

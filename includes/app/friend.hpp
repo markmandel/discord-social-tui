@@ -63,7 +63,7 @@ class Friend {
   void ClearVoiceCall();
 
   // Message handler management
-  void AddMessageHandler(const discordpp::MessageHandle& message_handle);
+  void AddMessage(const discordpp::MessageHandle& message);
 
  private:
   discordpp::UserHandle user_handle_;

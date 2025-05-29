@@ -19,6 +19,7 @@
 
 #include "app/buttons.hpp"
 #include "app/friend.hpp"
+#include "app/messages.hpp"
 #include "discordpp.h"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
@@ -51,6 +52,9 @@ class App {
 
   // Voice calling
   std::shared_ptr<Voice> voice_;
+
+  // Messages
+  std::shared_ptr<Messages> messages_;
 
   // Components
   int left_width_;

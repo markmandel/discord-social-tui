@@ -14,10 +14,29 @@
 
 #include "app/messages.hpp"
 
+#include <spdlog/spdlog.h>
+
 namespace discord_social_tui {
 
 Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
                    const std::shared_ptr<Friends>& friends)
     : client_(client), friends_(friends) {}
+
+void Messages::Run() const {
+  client_->SetMessageCreatedCallback([this](const uint64_t message_id) {
+    client_->GetMessageHandle(message_id)
+        .and_then([this](const discordpp::MessageHandle& message)
+                      -> std::optional<std::monostate> {
+          SPDLOG_INFO("New message received: {}", message.Content());
+
+          return friends_->GetFriendById(message.AuthorId())
+              .and_then([message](const std::shared_ptr<Friend>& friend_)
+                            -> std::optional<std::monostate> {
+                friend_->AddMessage(message);
+                return std::monostate{};
+              });
+        });
+  });
+}
 
 }  // namespace discord_social_tui

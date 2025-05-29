@@ -33,6 +33,7 @@ App::App(const uint64_t application_id,
       application_id_{application_id},
       client_{client},
       voice_{std::make_shared<Voice>(client, friends_)},
+      messages_{std::make_shared<Messages>(client, friends_)},
       left_width_{LEFT_WIDTH},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
       show_authenticating_modal_{false},
@@ -255,6 +256,8 @@ int App::Run() {
 
   // Start the voice process
   voice_->Run();
+  // Start tracking messages.
+  messages_->Run();
 
   // Run the application loop
   ftxui::Loop loop(&screen_, container_);
