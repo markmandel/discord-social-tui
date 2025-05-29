@@ -135,6 +135,10 @@ void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
 
 void Friend::ClearVoiceCall() { voice_call_.reset(); }
 
+void Friend::AddMessageHandler(const discordpp::MessageHandle& message_handle) {
+  message_handlers_.push_back(message_handle);
+}
+
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);
 

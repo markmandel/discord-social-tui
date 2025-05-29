@@ -46,9 +46,7 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
       {profile_button_, dm_button_, voice_button_});
 
   // when voice state changes, update the buttons
-  voice_->AddChangeHandler([this]() {
-    VoiceChanged();
-  });
+  voice_->AddChangeHandler([this]() { VoiceChanged(); });
 }
 
 const ftxui::Component& Buttons::GetComponent() const {

@@ -147,13 +147,13 @@ void Voice::Run() const {
                         return;
                       }
                       friends_->GetFriendById(participants[0])
-                          .and_then(
-                              [this, call](const std::shared_ptr<Friend>& friend_)
-                                  -> std::optional<std::monostate> {
-                                friend_->SetVoiceCall(call);
-                                OnChange();
-                                return std::monostate{};
-                              });
+                          .and_then([this, call](
+                                        const std::shared_ptr<Friend>& friend_)
+                                        -> std::optional<std::monostate> {
+                            friend_->SetVoiceCall(call);
+                            OnChange();
+                            return std::monostate{};
+                          });
                     });
               });
         }

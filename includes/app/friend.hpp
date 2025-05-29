@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -61,9 +62,13 @@ class Friend {
   void SetVoiceCall(const std::optional<discordpp::Call>& call);
   void ClearVoiceCall();
 
+  // Message handler management
+  void AddMessageHandler(const discordpp::MessageHandle& message_handle);
+
  private:
   discordpp::UserHandle user_handle_;
   std::optional<discordpp::Call> voice_call_;
+  std::vector<discordpp::MessageHandle> message_handlers_;
 };
 
 // A Friends adapter class for FTXUI menus
