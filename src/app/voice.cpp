@@ -97,11 +97,8 @@ void Voice::Disconnect() const {
             [this, friend_](
                 const discordpp::Call& call) -> std::optional<std::monostate> {
               client_->EndCall(call.GetChannelId(), [friend_]() {
-                SPDLOG_INFO("[1] Call ended successfully!: {}",
-                            friend_->GetVoiceCall().has_value());
                 friend_->ClearVoiceCall();
-                SPDLOG_INFO("[2] Call ended successfully!: {}",
-                            friend_->GetVoiceCall().has_value());
+                SPDLOG_INFO("Call ended successfully!");
               });
 
               return std::monostate{};

@@ -56,16 +56,14 @@ void Buttons::VoiceChanged() const {
         return friend_->GetVoiceCall();
       });
 
-  SPDLOG_INFO("Voice Changed: {}", call.has_value());
-
   if (call) {
-    SPDLOG_INFO("Had a call!");
+    SPDLOG_DEBUG("Had a call!");
     if (disconnect_button_->Parent() == nullptr) {
       voice_button_->Detach();
       horizontal_container_->Add(disconnect_button_);
     }
   } else {
-    SPDLOG_INFO("Doesn't have a call!");
+    SPDLOG_DEBUG("Doesn't have a call!");
     if (voice_button_->Parent() == nullptr) {
       disconnect_button_->Detach();
       horizontal_container_->Add(voice_button_);
