@@ -20,8 +20,16 @@
 
 namespace discord_social_tui {
 
-void Voice::Call(const std::shared_ptr<Friend>& friend_) const {
+void Voice::Call() const {
   const auto current_user = client_->GetCurrentUser();
+  const auto selected_friend = friends_->GetSelectedFriend();
+
+  if (!selected_friend) {
+    SPDLOG_ERROR("No friend selected for voice call");
+    return;
+  }
+
+  const auto& friend_ = selected_friend.value();
   const std::string lobby_secret = VOICE_CALL_PREFIX + current_user.Username() +
                                    ":" + friend_->GetUsername();
 
@@ -79,6 +87,18 @@ void Voice::Call(const std::shared_ptr<Friend>& friend_) const {
                   });
             });
       });
+}
+
+void Voice::Disconnect() const {
+  friends_->GetSelectedFriend().and_then([&](const std::shared_ptr<Friend>& friend_) -> std::optional<std::monostate> {
+    return friend_->GetVoiceCall().and_then([&](const discordpp::Call call) -> std::optional<std::monostate> {
+      client_->EndCall(call.GetChannelId(), []() {
+        SPDLOG_INFO("Call ended successfully");
+      });
+
+      return std::monostate{};
+    });
+  });
 }
 
 void Voice::Run() const {

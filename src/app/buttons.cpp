@@ -34,15 +34,14 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
 
   voice_button_ = ftxui::Button("🔉 Voice", [this] {
     SPDLOG_INFO("Starting voice call...");
-    friends_->GetSelectedFriend().and_then(
-        [&](const auto& friend_) -> std::optional<std::monostate> {
-          this->voice_->Call(friend_);
-          return std::monostate{};
-        });
+    this->voice_->Call();
   });
 
   disconnect_button_ = ftxui::Button(
-      "🔇 Disconnect", [] { SPDLOG_INFO("Disconnecting call!"); });
+      "🔇 Disconnect", [this] {
+        SPDLOG_INFO("Disconnecting call!");
+        voice_->Disconnect();
+      });
 
   horizontal_container_ = ftxui::Container::Horizontal(
       {profile_button_, dm_button_, voice_button_});
