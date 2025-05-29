@@ -90,16 +90,23 @@ void Voice::Call() const {
 }
 
 void Voice::Disconnect() const {
-  friends_->GetSelectedFriend().and_then([&](const std::shared_ptr<Friend>& friend_) -> std::optional<std::monostate> {
-    return friend_->GetVoiceCall().and_then([&](const discordpp::Call call) -> std::optional<std::monostate> {
-      client_->EndCall(call.GetChannelId(), [&]() {
-        friend_->SetVoiceCall(std::nullopt);
-        SPDLOG_INFO("Call ended successfully");
-      });
+  friends_->GetSelectedFriend().and_then(
+      [this](const std::shared_ptr<Friend>& friend_)
+          -> std::optional<std::monostate> {
+        return friend_->GetVoiceCall().and_then(
+            [this, friend_](
+                const discordpp::Call& call) -> std::optional<std::monostate> {
+              client_->EndCall(call.GetChannelId(), [friend_]() {
+                SPDLOG_INFO("[1] Call ended successfully!: {}",
+                            friend_->GetVoiceCall().has_value());
+                friend_->ClearVoiceCall();
+                SPDLOG_INFO("[2] Call ended successfully!: {}",
+                            friend_->GetVoiceCall().has_value());
+              });
 
-      return std::monostate{};
-    });
-  });
+              return std::monostate{};
+            });
+      });
 }
 
 void Voice::Run() const {

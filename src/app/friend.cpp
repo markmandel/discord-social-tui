@@ -133,6 +133,8 @@ void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
   voice_call_ = call;
 }
 
+void Friend::ClearVoiceCall() { voice_call_.reset(); }
+
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);
 

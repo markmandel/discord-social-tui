@@ -37,11 +37,10 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
     this->voice_->Call();
   });
 
-  disconnect_button_ = ftxui::Button(
-      "🔇 Disconnect", [this] {
-        SPDLOG_INFO("Disconnecting call!");
-        voice_->Disconnect();
-      });
+  disconnect_button_ = ftxui::Button("🔇 Disconnect", [this] {
+    SPDLOG_INFO("Disconnecting call!");
+    voice_->Disconnect();
+  });
 
   horizontal_container_ = ftxui::Container::Horizontal(
       {profile_button_, dm_button_, voice_button_});
@@ -57,12 +56,16 @@ void Buttons::VoiceChanged() const {
         return friend_->GetVoiceCall();
       });
 
+  SPDLOG_INFO("Voice Changed: {}", call.has_value());
+
   if (call) {
+    SPDLOG_INFO("Had a call!");
     if (disconnect_button_->Parent() == nullptr) {
       voice_button_->Detach();
       horizontal_container_->Add(disconnect_button_);
     }
   } else {
+    SPDLOG_INFO("Doesn't have a call!");
     if (voice_button_->Parent() == nullptr) {
       disconnect_button_->Detach();
       horizontal_container_->Add(voice_button_);

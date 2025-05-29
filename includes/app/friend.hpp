@@ -59,6 +59,7 @@ class Friend {
   // Voice call management
   [[nodiscard]] const std::optional<discordpp::Call>& GetVoiceCall() const;
   void SetVoiceCall(const std::optional<discordpp::Call>& call);
+  void ClearVoiceCall();
 
  private:
   discordpp::UserHandle user_handle_;
