@@ -92,7 +92,8 @@ void Voice::Call() const {
 void Voice::Disconnect() const {
   friends_->GetSelectedFriend().and_then([&](const std::shared_ptr<Friend>& friend_) -> std::optional<std::monostate> {
     return friend_->GetVoiceCall().and_then([&](const discordpp::Call call) -> std::optional<std::monostate> {
-      client_->EndCall(call.GetChannelId(), []() {
+      client_->EndCall(call.GetChannelId(), [&]() {
+        friend_->SetVoiceCall(std::nullopt);
         SPDLOG_INFO("Call ended successfully");
       });
 
