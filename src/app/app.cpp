@@ -50,21 +50,27 @@ App::App(const uint64_t application_id,
           ftxui::vscroll_indicator | ftxui::yframe;
 
   auto profile_component = profile_->Render();
+  auto messages_component = messages_->Render();
   // Content container with button row and content area
   const auto content = ftxui::Container::Vertical({
       buttons_->GetComponent(),
       profile_component,
   });
 
-  buttons_->AddProfileClickHandler([profile_component, content]() {
+  buttons_->AddProfileClickHandler([profile_component, messages_component, content]() {
+    messages_component->Detach();
     if (profile_component->Parent() != nullptr) {
       return;
     }
     content->Add(profile_component);
   });
 
-  buttons_->AddDMClickHandler([profile_component, content]() {
+  buttons_->AddDMClickHandler([profile_component, messages_component, content]() {
     profile_component->Detach();
+    if (messages_component->Parent() != nullptr) {
+      return;
+    }
+    content->Add(messages_component);
   });
 
   // Horizontal layout with the constrained menu

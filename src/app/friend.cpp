@@ -139,6 +139,10 @@ void Friend::AddMessage(const discordpp::MessageHandle& message) {
   message_handlers_.push_back(message);
 }
 
+const std::vector<discordpp::MessageHandle>& Friend::GetMessages() const {
+  return message_handlers_;
+}
+
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);
 

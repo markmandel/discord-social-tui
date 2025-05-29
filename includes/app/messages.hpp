@@ -15,9 +15,11 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "app/friend.hpp"
 #include "discordpp.h"
+#include "ftxui/component/component.hpp"
 
 namespace discord_social_tui {
 
@@ -26,10 +28,17 @@ class Messages {
   explicit Messages(const std::shared_ptr<discordpp::Client>& client,
                     const std::shared_ptr<Friends>& friends);
   void Run() const;
+  
+  /// Render the messages UI component
+  [[nodiscard]] ftxui::Component Render();
 
  private:
   std::shared_ptr<discordpp::Client> client_;
   std::shared_ptr<Friends> friends_;
+  std::string input_text_;
+  ftxui::Component input_component_;
+  ftxui::Component send_button_;
+  ftxui::Component messages_container_;
 };
 
 }  // namespace discord_social_tui

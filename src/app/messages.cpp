@@ -16,11 +16,22 @@
 
 #include <spdlog/spdlog.h>
 
+#include "ftxui/component/component.hpp"
+#include "ftxui/dom/elements.hpp"
+
 namespace discord_social_tui {
 
 Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
                    const std::shared_ptr<Friends>& friends)
-    : client_(client), friends_(friends) {}
+    : client_(client), friends_(friends) {
+  // Initialize UI components
+  input_component_ = ftxui::Input(&input_text_, "Type a message...");
+  send_button_ = ftxui::Button("Send", [this] {
+    SPDLOG_INFO("Sending message: {}", input_text_);
+    // TODO: Implement message sending
+    input_text_.clear();
+  });
+}
 
 void Messages::Run() const {
   client_->SetMessageCreatedCallback([this](const uint64_t message_id) {
@@ -37,6 +48,62 @@ void Messages::Run() const {
               });
         });
   });
+}
+
+ftxui::Component Messages::Render() {
+  // Create messages display area
+  const auto messages_display = ftxui::Renderer([this] {
+    std::vector<ftxui::Element> message_elements;
+
+    // Get currently selected friend
+    const auto selected_friend = friends_->GetSelectedFriend();
+    if (selected_friend.has_value()) {
+      const auto& friend_ = selected_friend.value();
+      message_elements.push_back(
+          ftxui::text("Messages with " + friend_->GetDisplayName()) |
+          ftxui::bold);
+      message_elements.push_back(ftxui::separator());
+
+      // Get and display all messages from this friend
+      const auto& messages = friend_->GetMessages();
+      if (messages.empty()) {
+        message_elements.push_back(ftxui::text("No messages yet...") |
+                                   ftxui::dim);
+      } else {
+        for (const auto& message : messages) {
+          // Display author and message content
+          auto author_name =
+              message.Author()
+                  .and_then([](const discordpp::UserHandle& author)
+                                -> std::optional<std::string> {
+                    return author.DisplayName();
+                  })
+                  .value_or("<unknown>");
+
+          message_elements.push_back(
+              ftxui::hbox({ftxui::text(author_name + ": ") |
+                               ftxui::color(ftxui::Color::Cyan),
+                           ftxui::text(message.Content())}));
+        }
+      }
+    } else {
+      message_elements.push_back(
+          ftxui::text("Select a friend to view messages") | ftxui::dim);
+    }
+
+    return ftxui::vbox(message_elements) | ftxui::vscroll_indicator |
+           ftxui::yframe;
+  });
+
+  // Create input area with text field and send button
+  auto input_area = ftxui::Container::Horizontal(
+      {input_component_ | ftxui::flex, send_button_});
+
+  // Combine messages display and input area
+  messages_container_ =
+      ftxui::Container::Vertical({messages_display | ftxui::flex, input_area});
+
+  return messages_container_;
 }
 
 }  // namespace discord_social_tui
