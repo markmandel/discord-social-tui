@@ -15,6 +15,7 @@
 #include "app/messages.hpp"
 
 #include <spdlog/spdlog.h>
+#include <sys/stat.h>
 
 #include "ftxui/component/component.hpp"
 #include "ftxui/dom/elements.hpp"
@@ -25,7 +26,30 @@ Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
                    const std::shared_ptr<Friends>& friends)
     : client_(client), friends_(friends) {
   // Initialize UI components
-  input_component_ = ftxui::Input(&input_text_, "Type a message...");
+
+
+  auto option = ftxui::InputOption();
+  option.multiline = true;
+  option.transform = [](ftxui::InputState state) {
+
+    if (state.focused) {
+      state.element |= ftxui::bgcolor(ftxui::Color::White);
+    } else if (state.hovered) {
+      state.element |= ftxui::bgcolor(ftxui::Color::GrayLight);
+    } else {
+      state.element |= ftxui::bgcolor(ftxui::Color::GrayDark);
+    }
+
+    if (state.is_placeholder) {
+      state.element |= ftxui::dim;
+    } else {
+      state.element |= ftxui::color(ftxui::Color::Black);
+    }
+
+    return state.element;
+  };
+
+  input_component_ = ftxui::Input(&input_text_, "Type a message...", option);
   send_button_ = ftxui::Button("Send", [this] {
     SPDLOG_INFO("Sending message: {}", input_text_);
     // TODO: Implement message sending
@@ -53,7 +77,7 @@ void Messages::Run() const {
 ftxui::Component Messages::Render() {
   // Create messages display area
   const auto messages_display = ftxui::Renderer([this] {
-    std::vector<ftxui::Element> message_elements;
+    ftxui::Elements message_elements;
 
     // Get currently selected friend
     const auto selected_friend = friends_->GetSelectedFriend();
@@ -91,6 +115,7 @@ ftxui::Component Messages::Render() {
           ftxui::text("Select a friend to view messages") | ftxui::dim);
     }
 
+    message_elements.push_back(ftxui::separator());
     return ftxui::vbox(message_elements) | ftxui::vscroll_indicator |
            ftxui::yframe;
   });
