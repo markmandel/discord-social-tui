@@ -84,6 +84,7 @@ void Voice::Call() const {
                     SPDLOG_INFO("☎️ Voice Call successfully invited");
                     auto call = client_->StartCall(lobby_id);
                     friend_->SetVoiceCall(call);
+                    OnChange();
                   });
             });
       });
@@ -96,8 +97,9 @@ void Voice::Disconnect() const {
         return friend_->GetVoiceCall().and_then(
             [this, friend_](
                 const discordpp::Call& call) -> std::optional<std::monostate> {
-              client_->EndCall(call.GetChannelId(), [friend_]() {
+              client_->EndCall(call.GetChannelId(), [this, friend_]() {
                 friend_->ClearVoiceCall();
+                OnChange();
                 SPDLOG_INFO("Call ended successfully!");
               });
 
@@ -146,9 +148,10 @@ void Voice::Run() const {
                       }
                       friends_->GetFriendById(participants[0])
                           .and_then(
-                              [call](const std::shared_ptr<Friend>& friend_)
+                              [this, call](const std::shared_ptr<Friend>& friend_)
                                   -> std::optional<std::monostate> {
                                 friend_->SetVoiceCall(call);
+                                OnChange();
                                 return std::monostate{};
                               });
                     });
@@ -156,4 +159,15 @@ void Voice::Run() const {
         }
       });
 }
+
+void Voice::AddChangeHandler(std::function<void()> handler) {
+  change_handlers_.push_back(std::move(handler));
+}
+
+void Voice::OnChange() const {
+  for (const auto& handler : change_handlers_) {
+    handler();
+  }
+}
+
 }  // namespace discord_social_tui

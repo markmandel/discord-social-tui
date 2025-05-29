@@ -14,7 +14,9 @@
 
 #pragma once
 #include <algorithm>
+#include <functional>
 #include <memory>
+#include <vector>
 
 #include "discordpp.h"
 #include "friend.hpp"
@@ -35,9 +37,16 @@ class Voice {
   /// Listen for invites and then join a voice lobby
   void Run() const;
 
+  /// Add a change handler function to be called when voice state changes
+  void AddChangeHandler(std::function<void()> handler);
+
  private:
   std::shared_ptr<discordpp::Client> client_;
   std::shared_ptr<Friends> friends_;
+  std::vector<std::function<void()>> change_handlers_;
+
+  /// Call all registered change handlers
+  void OnChange() const;
 };
 
 }  // namespace discord_social_tui
