@@ -127,8 +127,6 @@ bool ConfigureLogger(const std::string& log_file_name) {
     spdlog::set_default_logger(logger);
     spdlog::flush_every(std::chrono::seconds(FLUSH_INTERVAL));
 
-    // TODO: use macros for logging so we get source files.
-
     // Set JSON pattern with required fields
     spdlog::set_pattern(
         R"({"level":"%l","message":"%v","time":"%Y-%m-%d %H:%M:%S.%e","source":"%g"})");

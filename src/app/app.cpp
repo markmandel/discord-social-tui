@@ -164,6 +164,7 @@ void App::StartFriends() const {
 // Set rich presence for the Discord client
 void App::Presence() const {
   // Configure rich presence details
+  // TODO: Presence should be be it's own class just to handle presence tasks.
   discordpp::Activity activity;
   activity.SetType(discordpp::ActivityTypes::Playing);
   activity.SetState("Discord on the Command Line");
