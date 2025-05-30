@@ -65,20 +65,19 @@ App::App(const uint64_t application_id,
   buttons_->AddProfileClickHandler(
       [profile_component, messages_component, content]() {
         messages_component->Detach();
-        if (profile_component->Parent() != nullptr) {
-          return;
+        if (profile_component->Parent() == nullptr) {
+          content->Add(profile_component);
         }
-        content->Add(profile_component);
       });
 
   buttons_->AddDMClickHandler(
       [this, profile_component, messages_component, content]() {
         profile_component->Detach();
-        if (messages_component->Parent() != nullptr) {
-          return;
-        }
-        content->Add(messages_component);
         messages_->ResetSelectedUnreadMessages();
+
+        if (messages_component->Parent() == nullptr) {
+          content->Add(messages_component);
+        }
       });
 
   // Horizontal layout with the constrained menu
@@ -274,7 +273,9 @@ void App::Authorize() {
 
 // Run the application
 int App::Run() {
-  constexpr int SLEEP_MILLISECONDS = 10;
+  constexpr uint SLEEP_MILLISECONDS = 10;
+  const std::string EVENT = "Render Me!";
+  constexpr uint RENDER_LIMIT = 1000 / SLEEP_MILLISECONDS;
   StartStatusChangedCallback();
 
   // Start the authorization process
@@ -286,10 +287,18 @@ int App::Run() {
   messages_->Run();
 
   // Run the application loop
+  uint render_counter = 0;
   ftxui::Loop loop(&screen_, container_);
   while (!loop.HasQuitted()) {
     loop.RunOnce();
     discordpp::RunCallbacks();
+
+    // refresh screen every second, since friends and such change all the time.
+    render_counter++;
+    if (render_counter >= RENDER_LIMIT) {
+      screen_.PostEvent(ftxui::Event::Special(EVENT));
+    }
+
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_MILLISECONDS));
   }
 
