@@ -67,10 +67,15 @@ class Friend {
   [[nodiscard]] const std::vector<discordpp::MessageHandle>& GetMessages()
       const;
 
+  // Unread messages management
+  [[nodiscard]] bool HasUnreadMessages() const;
+  void ResetUnreadMessages();
+
  private:
   discordpp::UserHandle user_handle_;
   std::optional<discordpp::Call> voice_call_;
   std::vector<discordpp::MessageHandle> message_handlers_;
+  bool unread_messages_ = false;
 };
 
 // A Friends adapter class for FTXUI menus

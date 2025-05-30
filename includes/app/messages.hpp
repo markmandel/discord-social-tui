@@ -28,6 +28,8 @@ class Messages {
   explicit Messages(const std::shared_ptr<discordpp::Client>& client,
                     const std::shared_ptr<Friends>& friends);
   void Run() const;
+  /// Resets the selected user has unread messages.
+  void ResetSelectedUnreadMessages() const;
 
   /// Render the messages UI component
   [[nodiscard]] ftxui::Component Render();
@@ -39,6 +41,8 @@ class Messages {
   ftxui::Component input_component_;
   ftxui::Component send_button_;
   ftxui::Component messages_container_;
+
+  void SendMessage();
 };
 
 }  // namespace discord_social_tui

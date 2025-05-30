@@ -63,6 +63,10 @@ std::string Friend::GetFormattedDisplayName() const {
     status_emoji += "🔉";
   }
 
+  if (HasUnreadMessages()) {
+    status_emoji += "📨";
+  }
+
   return status_emoji + " " + GetDisplayName();
 }
 
@@ -136,12 +140,16 @@ void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
 void Friend::ClearVoiceCall() { voice_call_.reset(); }
 
 void Friend::AddMessage(const discordpp::MessageHandle& message) {
+  this->unread_messages_ = true;
   message_handlers_.push_back(message);
 }
 
 const std::vector<discordpp::MessageHandle>& Friend::GetMessages() const {
   return message_handlers_;
 }
+
+bool Friend::HasUnreadMessages() const { return unread_messages_; }
+void Friend::ResetUnreadMessages() { unread_messages_ = false; }
 
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);

@@ -43,12 +43,6 @@ App::App(const uint64_t application_id,
   SPDLOG_INFO("App initialized with Discord Application ID: {}",
               application_id_);
 
-  auto options = ftxui::MenuOption::Vertical();
-  options.on_change = [&]() { buttons_->VoiceChanged(); };
-  // Left side menu component - use Friends' internal selection index
-  menu_ = ftxui::Menu(friends_.get(), friends_->GetSelectedIndex(), options) |
-          ftxui::vscroll_indicator | ftxui::yframe;
-
   auto profile_component = profile_->Render();
   auto messages_component = messages_->Render() | ftxui::flex;
   // Content container with button row and content area
@@ -56,6 +50,17 @@ App::App(const uint64_t application_id,
       buttons_->GetComponent(),
       profile_component,
   });
+
+  auto options = ftxui::MenuOption::Vertical();
+  options.on_change = [this, messages_component]() {
+    buttons_->VoiceChanged();
+    if (messages_component->Parent() != nullptr) {
+      messages_->ResetSelectedUnreadMessages();
+    }
+  };
+  // Left side menu component - use Friends' internal selection index
+  menu_ = ftxui::Menu(friends_.get(), friends_->GetSelectedIndex(), options) |
+          ftxui::vscroll_indicator | ftxui::yframe;
 
   buttons_->AddProfileClickHandler(
       [profile_component, messages_component, content]() {
@@ -67,12 +72,13 @@ App::App(const uint64_t application_id,
       });
 
   buttons_->AddDMClickHandler(
-      [profile_component, messages_component, content]() {
+      [this, profile_component, messages_component, content]() {
         profile_component->Detach();
         if (messages_component->Parent() != nullptr) {
           return;
         }
         content->Add(messages_component);
+        messages_->ResetSelectedUnreadMessages();
       });
 
   // Horizontal layout with the constrained menu

@@ -27,7 +27,7 @@ Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
     : client_(client), friends_(friends) {
   // Initialize UI components
   auto option = ftxui::InputOption();
-  option.multiline = true;
+  option.multiline = false;
   option.transform = [](ftxui::InputState state) {
     if (state.focused) {
       state.element |= ftxui::bgcolor(ftxui::Color::White);
@@ -45,40 +45,12 @@ Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
 
     return state.element;
   };
+  /// If you write anything in the input textfield, the unread thing goes away.
+  option.on_change = [this]() { ResetSelectedUnreadMessages(); };
+  option.on_enter = [this]() { SendMessage(); };
 
   input_component_ = ftxui::Input(&input_text_, "Type a message...", option);
-  send_button_ = ftxui::Button("Send", [this] {
-    SPDLOG_INFO("Sending message: {}", input_text_);
-    friends_->GetSelectedFriend().and_then(
-        [this](const std::shared_ptr<Friend>& friend_)
-            -> std::optional<std::monostate> {
-          if (input_text_.empty()) {
-            SPDLOG_DEBUG("Cannot send empty message");
-            return std::nullopt;
-          }
-
-          client_->SendUserMessage(
-              friend_->GetId(), input_text_,
-              [this, friend_](const discordpp::ClientResult& result,
-                              unsigned long message_id) {
-                if (!result.Successful()) {
-                  SPDLOG_INFO("Failed to send message: {}", result.Error());
-                  return;
-                }
-
-                SPDLOG_INFO("Message sent: {}", message_id);
-                input_text_.clear();
-
-                client_->GetMessageHandle(message_id)
-                    .and_then([friend_](const discordpp::MessageHandle& message)
-                                  -> std::optional<std::monostate> {
-                      friend_->AddMessage(message);
-                      return std::monostate{};
-                    });
-              });
-          return std::monostate{};
-        });
-  });
+  send_button_ = ftxui::Button("Send", [this] { SendMessage(); });
 }
 
 void Messages::Run() const {
@@ -96,6 +68,15 @@ void Messages::Run() const {
               });
         });
   });
+}
+
+void Messages::ResetSelectedUnreadMessages() const {
+  friends_->GetSelectedFriend().and_then(
+      [](const std::shared_ptr<Friend>& friend_)
+          -> std::optional<std::monostate> {
+        friend_->ResetUnreadMessages();
+        return std::monostate{};
+      });
 }
 
 ftxui::Component Messages::Render() {
@@ -168,6 +149,38 @@ ftxui::Component Messages::Render() {
   });
 
   return messages_container_;
+}
+
+void Messages::SendMessage() {
+  SPDLOG_INFO("Sending message: {}", input_text_);
+  friends_->GetSelectedFriend().and_then(
+      [this](const std::shared_ptr<Friend>& friend_)
+          -> std::optional<std::monostate> {
+        if (input_text_.empty()) {
+          SPDLOG_DEBUG("Cannot send empty message");
+          return std::nullopt;
+        }
+
+        client_->SendUserMessage(
+            friend_->GetId(), input_text_,
+            [this, friend_](const discordpp::ClientResult& result,
+                            unsigned long message_id) {
+              if (!result.Successful()) {
+                SPDLOG_INFO("Failed to send message: {}", result.Error());
+                return;
+              }
+              input_text_.clear();
+
+              SPDLOG_INFO("Message sent: {}", message_id);
+              client_->GetMessageHandle(message_id)
+                  .and_then([friend_](const discordpp::MessageHandle& message)
+                                -> std::optional<std::monostate> {
+                    friend_->AddMessage(message);
+                    return std::monostate{};
+                  });
+            });
+        return std::monostate{};
+      });
 }
 
 }  // namespace discord_social_tui
