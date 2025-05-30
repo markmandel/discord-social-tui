@@ -37,7 +37,9 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
 
   voice_button_ = ftxui::Button("🔉 Voice", [this] {
     SPDLOG_INFO("Starting voice call...");
-    // TODO: rather than passing in voice, make a handler for the button, like you do with the other buttons, and wire up in App.cpps. That would be cleaner.
+    // TODO: rather than passing in voice, make a handler for the button, like
+    // you do with the other buttons, and wire up in App.cpps. That would be
+    // cleaner.
     this->voice_->Call();
   });
 
