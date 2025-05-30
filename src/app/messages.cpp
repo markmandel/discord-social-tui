@@ -50,7 +50,8 @@ Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
   send_button_ = ftxui::Button("Send", [this] {
     SPDLOG_INFO("Sending message: {}", input_text_);
     friends_->GetSelectedFriend().and_then(
-        [this](const std::shared_ptr<Friend>& friend_) ->std::optional<std::monostate> {
+        [this](const std::shared_ptr<Friend>& friend_)
+            -> std::optional<std::monostate> {
           if (input_text_.empty()) {
             SPDLOG_DEBUG("Cannot send empty message");
             return std::nullopt;
@@ -107,11 +108,10 @@ ftxui::Component Messages::Render() {
           {ftxui::text("Messages with " + friend_->GetDisplayName()) |
                ftxui::bold,
            ftxui::separator()});
-    } else {
-      return ftxui::vbox(
-          {ftxui::text("Select a friend to view messages") | ftxui::dim,
-           ftxui::separator()});
     }
+    return ftxui::vbox(
+        {ftxui::text("Select a friend to view messages") | ftxui::dim,
+         ftxui::separator()});
   });
 
   // Create scrollable messages area (only the message list scrolls)

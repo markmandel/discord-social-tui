@@ -28,7 +28,7 @@ class Messages {
   explicit Messages(const std::shared_ptr<discordpp::Client>& client,
                     const std::shared_ptr<Friends>& friends);
   void Run() const;
-  
+
   /// Render the messages UI component
   [[nodiscard]] ftxui::Component Render();
 

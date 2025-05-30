@@ -64,7 +64,8 @@ class Friend {
 
   // Message handler management
   void AddMessage(const discordpp::MessageHandle& message);
-  [[nodiscard]] const std::vector<discordpp::MessageHandle>& GetMessages() const;
+  [[nodiscard]] const std::vector<discordpp::MessageHandle>& GetMessages()
+      const;
 
  private:
   discordpp::UserHandle user_handle_;

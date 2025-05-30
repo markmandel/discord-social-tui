@@ -25,18 +25,19 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
                  const std::shared_ptr<Voice>& voice)
     : friends_(friends), voice_(voice) {
   // Initialize button components
-  profile_button_ = ftxui::Button("Profile", [this] {
+  profile_button_ = ftxui::Button("👤 Profile", [this] {
     SPDLOG_INFO("pressed profile button");
     OnProfileClick();
   });
 
-  dm_button_ = ftxui::Button("Message", [this] {
+  dm_button_ = ftxui::Button("📨 Message", [this] {
     SPDLOG_INFO("pressed DM button");
     OnDMClick();
   });
 
   voice_button_ = ftxui::Button("🔉 Voice", [this] {
     SPDLOG_INFO("Starting voice call...");
+    // TODO: rather than passing in voice, make a handler for the button, like you do with the other buttons, and wire up in App.cpps. That would be cleaner.
     this->voice_->Call();
   });
 
