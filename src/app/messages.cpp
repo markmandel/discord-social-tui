@@ -29,7 +29,6 @@ Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
   auto option = ftxui::InputOption();
   option.multiline = true;
   option.transform = [](ftxui::InputState state) {
-
     if (state.focused) {
       state.element |= ftxui::bgcolor(ftxui::Color::White);
     } else if (state.hovered) {
@@ -50,8 +49,34 @@ Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
   input_component_ = ftxui::Input(&input_text_, "Type a message...", option);
   send_button_ = ftxui::Button("Send", [this] {
     SPDLOG_INFO("Sending message: {}", input_text_);
-    // TODO: Implement message sending
-    input_text_.clear();
+    friends_->GetSelectedFriend().and_then(
+        [this](const std::shared_ptr<Friend>& friend_) ->std::optional<std::monostate> {
+          if (input_text_.empty()) {
+            SPDLOG_DEBUG("Cannot send empty message");
+            return std::nullopt;
+          }
+
+          client_->SendUserMessage(
+              friend_->GetId(), input_text_,
+              [this, friend_](const discordpp::ClientResult& result,
+                              unsigned long message_id) {
+                if (!result.Successful()) {
+                  SPDLOG_INFO("Failed to send message: {}", result.Error());
+                  return;
+                }
+
+                SPDLOG_INFO("Message sent: {}", message_id);
+                input_text_.clear();
+
+                client_->GetMessageHandle(message_id)
+                    .and_then([friend_](const discordpp::MessageHandle& message)
+                                  -> std::optional<std::monostate> {
+                      friend_->AddMessage(message);
+                      return std::monostate{};
+                    });
+              });
+          return std::monostate{};
+        });
   });
 }
 
@@ -78,15 +103,14 @@ ftxui::Component Messages::Render() {
     const auto selected_friend = friends_->GetSelectedFriend();
     if (selected_friend.has_value()) {
       const auto& friend_ = selected_friend.value();
-      return ftxui::vbox({
-          ftxui::text("Messages with " + friend_->GetDisplayName()) | ftxui::bold,
-          ftxui::separator()
-      });
+      return ftxui::vbox(
+          {ftxui::text("Messages with " + friend_->GetDisplayName()) |
+               ftxui::bold,
+           ftxui::separator()});
     } else {
-      return ftxui::vbox({
-          ftxui::text("Select a friend to view messages") | ftxui::dim,
-          ftxui::separator()
-      });
+      return ftxui::vbox(
+          {ftxui::text("Select a friend to view messages") | ftxui::dim,
+           ftxui::separator()});
     }
   });
 
@@ -122,25 +146,24 @@ ftxui::Component Messages::Render() {
       }
     }
 
-    return ftxui::vbox(message_elements) | ftxui::vscroll_indicator | ftxui::yframe;
+    return ftxui::vbox(message_elements) | ftxui::vscroll_indicator |
+           ftxui::yframe;
   });
 
   // Create input area with text field and send button (fixed at bottom)
   auto input_area = ftxui::Container::Horizontal(
       {input_component_ | ftxui::flex, send_button_});
-  
+
   // Wrap input area with separator
   auto input_with_separator = ftxui::Renderer(input_area, [input_area] {
-    return ftxui::vbox({
-        ftxui::separator(),
-        input_area->Render()
-    });
+    return ftxui::vbox({ftxui::separator(), input_area->Render()});
   });
 
   // Combine header, scrollable messages, and fixed input area
   messages_container_ = ftxui::Container::Vertical({
       header_display,
-      messages_display | ftxui::flex,  // Messages take up remaining space and scroll
+      messages_display |
+          ftxui::flex,      // Messages take up remaining space and scroll
       input_with_separator  // Input area stays at bottom
   });
 
