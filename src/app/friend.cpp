@@ -140,7 +140,10 @@ void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
 void Friend::ClearVoiceCall() { voice_call_.reset(); }
 
 void Friend::AddMessage(const discordpp::MessageHandle& message) {
-  this->unread_messages_ = true;
+  // only set to unread if it comes from this user.
+  if (message.AuthorId() == GetId()) {
+    this->unread_messages_ = true;
+  }
   message_handlers_.push_back(message);
 }
 
