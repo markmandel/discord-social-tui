@@ -157,11 +157,11 @@ void App::StartFriends() const {
 
   // resort friends when their status updates
   client_->SetUserUpdatedCallback(
-      [&](uint64_t userId) { friends_->SortFriends(); });
+      [&](uint64_t user_id) { friends_->SortFriends(); });
 
   client_->SetRelationshipCreatedCallback(
-      [&](uint64_t userId, bool isDiscordRelationshipUpdate) {
-        client_->GetUser(userId).and_then(
+      [&](uint64_t user_id, bool isDiscordRelationshipUpdate) {
+        client_->GetUser(user_id).and_then(
             [&](const auto& user) -> std::optional<std::monostate> {
               SPDLOG_INFO("🔥 Relationship created: {} (ID: {})",
                           user.Username(), user.Id());
@@ -175,7 +175,6 @@ void App::StartFriends() const {
                 friends_->AddFriend(std::make_shared<Friend>(user));
               }
 
-              friends_->AddFriend(std::make_shared<Friend>(user));
               return std::monostate{};
             });
       });
