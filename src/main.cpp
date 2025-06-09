@@ -196,9 +196,9 @@ void StartDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
       discordpp::LoggingSeverity::Info);
 }
 
-int main(int argc, char* argv[]) {
+int main(const int argc, char* argv[]) {
   // Convert C-style arguments to a vector
-  std::vector<std::string> args(argv, argv + argc);
+  const std::vector<std::string> args(argv, argv + argc);
 
   // Parse log file name from command line
   const std::string log_file_name = ParseLogFileName(args);
