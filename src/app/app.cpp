@@ -140,7 +140,7 @@ void App::StartFriends() const {
 
   for (auto& relationship : client_->GetRelationships()) {
     relationship.User().and_then(
-        [&](const auto& user) -> std::optional<discordpp::UserHandle> {
+        [&](const auto& user) -> std::optional<std::monostate> {
           // Log information about the friend we're adding
           SPDLOG_DEBUG("Found friend: {} (ID: {})", user.Username(), user.Id());
 
@@ -151,7 +151,7 @@ void App::StartFriends() const {
                   discordpp::RelationshipType::Friend) {
             friends_->AddFriend(std::make_shared<Friend>(user));
           }
-          return std::nullopt;
+          return std::monostate{};
         });
   }
 
@@ -162,7 +162,7 @@ void App::StartFriends() const {
   client_->SetRelationshipCreatedCallback(
       [&](uint64_t userId, bool isDiscordRelationshipUpdate) {
         client_->GetUser(userId).and_then(
-            [&](const auto& user) -> std::optional<discordpp::UserHandle> {
+            [&](const auto& user) -> std::optional<std::monostate> {
               SPDLOG_INFO("🔥 Relationship created: {} (ID: {})",
                           user.Username(), user.Id());
 
@@ -176,7 +176,7 @@ void App::StartFriends() const {
               }
 
               friends_->AddFriend(std::make_shared<Friend>(user));
-              return std::nullopt;
+              return std::monostate{};
             });
       });
 
