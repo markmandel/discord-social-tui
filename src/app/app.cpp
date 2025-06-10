@@ -262,8 +262,6 @@ void App::Authorize() {
                                  } else {
                                    SPDLOG_INFO("Connection Social SDK...");
                                    this->client_->Connect();
-                                   // The modal will be hidden when the client
-                                   // is ready via the status changed callback
                                  }
                                });
         });
