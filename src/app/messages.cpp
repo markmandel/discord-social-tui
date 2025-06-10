@@ -166,7 +166,7 @@ void Messages::SendMessage() {
             [this, friend_](const discordpp::ClientResult& result,
                             unsigned long message_id) {
               if (!result.Successful()) {
-                SPDLOG_INFO("Failed to send message: {}", result.Error());
+                SPDLOG_ERROR("Failed to send message: {}", result.Error());
                 return;
               }
               input_text_.clear();
