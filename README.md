@@ -2,6 +2,8 @@
 
 A terminal user interface for Discord's social features using the Discord Social SDK.
 
+![screenshot](./screenshot.png)
+
 ## Prerequisites
 
 - C++23 compatible compiler
