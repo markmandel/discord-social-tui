@@ -53,6 +53,12 @@ std::string Friend::GetFormattedDisplayName() const {
     case discordpp::StatusType::Blocked:
       status_emoji = "⛔";  // No entry sign for blocked
       break;
+    case discordpp::StatusType::Dnd:
+      status_emoji = "🔴";  // Red circle for do not disturb
+      break;
+    case discordpp::StatusType::Invisible:
+      status_emoji = "⚪";  // White circle for invisible
+      break;
     case discordpp::StatusType::Offline:
     default:
       status_emoji = "⚫";  // Black circle for offline
@@ -71,18 +77,22 @@ std::string Friend::GetFormattedDisplayName() const {
 }
 
 int Friend::GetStatusPriority(const discordpp::StatusType status) {
-  // Order of priority: Online, Idle, Offline, Blocked
+  // Order of priority: Online, Idle, Dnd, Invisible, Offline, Blocked
   switch (status) {
     case discordpp::StatusType::Online:
       return 0;
     case discordpp::StatusType::Idle:
       return 1;
-    case discordpp::StatusType::Offline:
+    case discordpp::StatusType::Dnd:
       return 2;
-    case discordpp::StatusType::Blocked:
+    case discordpp::StatusType::Invisible:
       return 3;
+    case discordpp::StatusType::Offline:
+      return 4;
+    case discordpp::StatusType::Blocked:
+      return 5;
     default:
-      return 4;  // Any unknown status comes last
+      return 6;  // Any unknown status comes last
   }
 }
 

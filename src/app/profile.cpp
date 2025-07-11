@@ -122,6 +122,14 @@ ftxui::Element Profile::RenderStatusInfo(
       status_text = "Blocked";
       status_color = ftxui::Color::Red;
       break;
+    case discordpp::StatusType::Dnd:
+      status_text = "Do Not Disturb";
+      status_color = ftxui::Color::RedLight;
+      break;
+    case discordpp::StatusType::Invisible:
+      status_text = "Invisible";
+      status_color = ftxui::Color::GrayLight;
+      break;
     case discordpp::StatusType::Offline:
     default:
       status_text = "Offline";
