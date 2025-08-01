@@ -31,7 +31,7 @@ class Voice {
                  const std::shared_ptr<Friends> &friends)
       : client_(client), friends_(friends) {}
 
-  /// Initiate a voice call with the currenly selected friend.
+  /// Initiate a voice call with the currently selected friend.
   void Call() const;
   void Disconnect() const;
   /// Listen for invites and then join a voice lobby

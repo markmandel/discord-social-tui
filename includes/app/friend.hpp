@@ -25,10 +25,14 @@
 
 namespace discord_social_tui {
 
+// Forward declarations
+class Messages;
+
 // A Friend class to represent a Discord friend
 class Friend {
  public:
-  explicit Friend(discordpp::UserHandle user_handle);
+  explicit Friend(discordpp::UserHandle user_handle, 
+                  std::shared_ptr<Messages> messages);
 
   [[nodiscard]] uint64_t GetId() const;
   [[nodiscard]] std::string GetUsername() const;
@@ -62,20 +66,11 @@ class Friend {
   void SetVoiceCall(const std::optional<discordpp::Call>& call);
   void ClearVoiceCall();
 
-  // Message handler management
-  void AddMessage(const discordpp::MessageHandle& message);
-  [[nodiscard]] const std::vector<discordpp::MessageHandle>& GetMessages()
-      const;
-
-  // Unread messages management
-  [[nodiscard]] bool HasUnreadMessages() const;
-  void ResetUnreadMessages();
-
  private:
   discordpp::UserHandle user_handle_;
+  std::shared_ptr<Messages> messages_;
   std::optional<discordpp::Call> voice_call_;
   std::vector<discordpp::MessageHandle> message_handlers_;
-  bool unread_messages_ = false;
 };
 
 // A Friends adapter class for FTXUI menus

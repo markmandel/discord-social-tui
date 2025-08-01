@@ -16,6 +16,8 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "app/friend.hpp"
 #include "discordpp.h"
@@ -27,9 +29,11 @@ class Messages {
  public:
   explicit Messages(const std::shared_ptr<discordpp::Client>& client,
                     const std::shared_ptr<Friends>& friends);
-  void Run() const;
+  void Run();
   /// Resets the selected user has unread messages.
-  void ResetSelectedUnreadMessages() const;
+  void ResetSelectedUnreadMessages();
+  // Does this user have any unread messages?
+  bool HasUnreadMessages(uint64_t user_id) const;
 
   /// Render the messages UI component
   [[nodiscard]] ftxui::Component Render();
@@ -41,8 +45,14 @@ class Messages {
   ftxui::Component input_component_;
   ftxui::Component send_button_;
   ftxui::Component messages_container_;
+  std::unordered_map<uint64_t, std::vector<discordpp::MessageHandle>>
+      user_messages_;
+  // does the user have unread messages
+  std::unordered_map<u_int64_t, bool> unread_messages_;
 
   void SendMessage();
+  void AddUserMessage(uint64_t message_id);
+  std::vector<discordpp::MessageHandle> GetMessages(uint64_t user_id);
 };
 
 }  // namespace discord_social_tui

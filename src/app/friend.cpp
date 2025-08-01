@@ -18,10 +18,13 @@
 
 #include <algorithm>
 
+#include "app/messages.hpp"
+
 namespace discord_social_tui {
 
-Friend::Friend(discordpp::UserHandle user_handle)
-    : user_handle_(std::move(user_handle)) {}
+Friend::Friend(discordpp::UserHandle user_handle, 
+               std::shared_ptr<Messages> messages)
+    : user_handle_(std::move(user_handle)), messages_(std::move(messages)) {}
 
 uint64_t Friend::GetId() const { return user_handle_.Id(); }
 
@@ -69,8 +72,8 @@ std::string Friend::GetFormattedDisplayName() const {
     status_emoji += "🔉";
   }
 
-  if (HasUnreadMessages()) {
-    status_emoji += "📨";
+  if (messages_->HasUnreadMessages(GetId())) {
+     status_emoji += "📨";
   }
 
   return status_emoji + " " + GetDisplayName();
@@ -148,21 +151,6 @@ void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
 }
 
 void Friend::ClearVoiceCall() { voice_call_.reset(); }
-
-void Friend::AddMessage(const discordpp::MessageHandle& message) {
-  // only set to unread if it comes from this user.
-  if (message.AuthorId() == GetId()) {
-    this->unread_messages_ = true;
-  }
-  message_handlers_.push_back(message);
-}
-
-const std::vector<discordpp::MessageHandle>& Friend::GetMessages() const {
-  return message_handlers_;
-}
-
-bool Friend::HasUnreadMessages() const { return unread_messages_; }
-void Friend::ResetUnreadMessages() { unread_messages_ = false; }
 
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);

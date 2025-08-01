@@ -149,7 +149,7 @@ void App::StartFriends() const {
                   discordpp::RelationshipType::Friend ||
               relationship.GameRelationshipType() ==
                   discordpp::RelationshipType::Friend) {
-            friends_->AddFriend(std::make_shared<Friend>(user));
+            friends_->AddFriend(std::make_shared<Friend>(user, messages_));
           }
           return std::monostate{};
         });
@@ -172,7 +172,7 @@ void App::StartFriends() const {
                       discordpp::RelationshipType::Friend ||
                   relationship.GameRelationshipType() ==
                       discordpp::RelationshipType::Friend) {
-                friends_->AddFriend(std::make_shared<Friend>(user));
+                friends_->AddFriend(std::make_shared<Friend>(user, messages_));
               }
 
               return std::monostate{};
