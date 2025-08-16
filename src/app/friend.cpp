@@ -19,20 +19,22 @@
 #include <algorithm>
 
 #include "app/messages.hpp"
+#include "app/voice.hpp"
 
 namespace discord_social_tui {
 
-Friend::Friend(discordpp::UserHandle user_handle, 
-               std::shared_ptr<Messages> messages)
-    : user_handle_(std::move(user_handle)), messages_(std::move(messages)) {}
+Friend::Friend(discordpp::UserHandle user_handle,
+               std::shared_ptr<Messages> messages, std::shared_ptr<Voice> voice)
+    : user_handle_(std::move(user_handle)),
+      messages_(std::move(messages)),
+      voice_(std::move(voice)) {}
 
 uint64_t Friend::GetId() const { return user_handle_.Id(); }
 
 std::string Friend::GetUsername() const { return user_handle_.Username(); }
 
 std::string Friend::GetDisplayName() const {
-  auto display_name = user_handle_.DisplayName();
-  if (!display_name.empty()) {
+  if (auto display_name = user_handle_.DisplayName(); !display_name.empty()) {
     return display_name;
   }
   // Fall back to username if display name is not available
@@ -68,12 +70,12 @@ std::string Friend::GetFormattedDisplayName() const {
       break;
   }
 
-  if (GetVoiceCall().has_value()) {
+  if (voice_->GetCall(GetId()).has_value()) {
     status_emoji += "🔉";
   }
 
   if (messages_->HasUnreadMessages(GetId())) {
-     status_emoji += "📨";
+    status_emoji += "📨";
   }
 
   return status_emoji + " " + GetDisplayName();
@@ -142,16 +144,6 @@ bool Friend::operator!=(const Friend& other) const {
   return !(*this == other);
 }
 
-const std::optional<discordpp::Call>& Friend::GetVoiceCall() const {
-  return voice_call_;
-}
-
-void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
-  voice_call_ = call;
-}
-
-void Friend::ClearVoiceCall() { voice_call_.reset(); }
-
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);
 
@@ -170,7 +162,7 @@ void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
 
   // Insert the friend at the correct position
   friends_.insert(pos, std::move(friend_));
-  SPDLOG_DEBUG("Friend {} inserted at position {}", username,
+  SPDLOG_DEBUG("Friend {} inserted at position {}", friend_->GetUsername(),
                std::distance(friends_.begin(), pos));
   selected.and_then(
       [&](const auto& selected_friend) -> std::optional<std::monostate> {

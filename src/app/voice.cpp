@@ -20,7 +20,7 @@
 
 namespace discord_social_tui {
 
-void Voice::Call() const {
+void Voice::Call() {
   const auto current_user = client_->GetCurrentUser();
   const auto selected_friend = friends_->GetSelectedFriend();
 
@@ -82,8 +82,8 @@ void Voice::Call() const {
                       return;
                     }
                     SPDLOG_INFO("☎️ Voice Call successfully invited");
-                    auto call = client_->StartCall(lobby_id);
-                    friend_->SetVoiceCall(call);
+                    const discordpp::Call call = client_->StartCall(lobby_id);
+                    active_calls_.insert({friend_->GetId(), call});
                     OnChange();
                   });
             });
@@ -92,15 +92,15 @@ void Voice::Call() const {
 
 // TODO: Update rich presence when the other person joins the call.
 
-void Voice::Disconnect() const {
+void Voice::Disconnect() {
   friends_->GetSelectedFriend().and_then(
       [this](const std::shared_ptr<Friend>& friend_)
           -> std::optional<std::monostate> {
-        return friend_->GetVoiceCall().and_then(
-            [this, friend_](
-                const discordpp::Call& call) -> std::optional<std::monostate> {
+        return GetCall(friend_->GetId())
+            .and_then([this, friend_](const discordpp::Call& call)
+                          -> std::optional<std::monostate> {
               client_->EndCall(call.GetChannelId(), [this, friend_]() {
-                friend_->ClearVoiceCall();
+                active_calls_.erase(friend_->GetId());
                 // TODO: Update rich presence to turn off the call.
                 OnChange();
                 SPDLOG_INFO("Call ended successfully!");
@@ -111,7 +111,7 @@ void Voice::Disconnect() const {
       });
 }
 
-void Voice::Run() const {
+void Voice::Run() {
   SPDLOG_INFO("Starting Voice Service...");
 
   client_->SetActivityInviteCreatedCallback(
@@ -153,7 +153,7 @@ void Voice::Run() const {
                           .and_then([this, call](
                                         const std::shared_ptr<Friend>& friend_)
                                         -> std::optional<std::monostate> {
-                            friend_->SetVoiceCall(call);
+                            active_calls_.insert({friend_->GetId(), call});
                             // TODO: update rich presence when you join a call.
                             OnChange();
                             return std::monostate{};
@@ -164,6 +164,8 @@ void Voice::Run() const {
       });
 }
 
+// TODO: not quite sure how to do this, but if the other person in the lobby drops, then disconnect the call automatically.
+
 void Voice::AddChangeHandler(std::function<void()> handler) {
   change_handlers_.push_back(std::move(handler));
 }
@@ -172,6 +174,14 @@ void Voice::OnChange() const {
   for (const auto& handler : change_handlers_) {
     handler();
   }
+}
+
+std::optional<discordpp::Call> Voice::GetCall(const uint64_t user_id) const {
+  const auto it = active_calls_.find(user_id);
+  if (it != active_calls_.end()) {
+    return it->second;
+  }
+  return std::nullopt;
 }
 
 }  // namespace discord_social_tui

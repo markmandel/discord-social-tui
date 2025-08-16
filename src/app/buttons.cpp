@@ -37,15 +37,12 @@ Buttons::Buttons(const std::shared_ptr<Friends>& friends,
 
   voice_button_ = ftxui::Button("🔉 Voice", [this] {
     SPDLOG_INFO("Starting voice call...");
-    // TODO: rather than passing in voice, make a handler for the button, like
-    // you do with the other buttons, and wire up in App.cpps. That would be
-    // cleaner.
-    this->voice_->Call();
+    OnVoiceClick();
   });
 
   disconnect_button_ = ftxui::Button("🔇 Disconnect", [this] {
     SPDLOG_INFO("Disconnecting call!");
-    voice_->Disconnect();
+    OnDisconnectClick();
   });
 
   horizontal_container_ = ftxui::Container::Horizontal(
@@ -61,8 +58,8 @@ const ftxui::Component& Buttons::GetComponent() const {
 
 void Buttons::VoiceChanged() const {
   const auto call = friends_->GetSelectedFriend().and_then(
-      [](const auto& friend_) -> std::optional<discordpp::Call> {
-        return friend_->GetVoiceCall();
+      [this](const auto& friend_) -> std::optional<discordpp::Call> {
+        return voice_->GetCall(friend_->GetId());
       });
 
   if (call) {
@@ -88,6 +85,14 @@ void Buttons::AddProfileClickHandler(std::function<void()> handler) {
   profile_click_handlers_.push_back(std::move(handler));
 }
 
+void Buttons::AddVoiceClickHandler(std::function<void()> handler) {
+  voice_click_handlers_.push_back(std::move(handler));
+}
+
+void Buttons::AddDisconnectClickHandler(std::function<void()> handler) {
+  disconnect_click_handlers_.push_back(std::move(handler));
+}
+
 void Buttons::OnDMClick() const {
   for (const auto& handler : dm_click_handlers_) {
     handler();
@@ -96,6 +101,18 @@ void Buttons::OnDMClick() const {
 
 void Buttons::OnProfileClick() const {
   for (const auto& handler : profile_click_handlers_) {
+    handler();
+  }
+}
+
+void Buttons::OnVoiceClick() const {
+  for (const auto& handler : voice_click_handlers_) {
+    handler();
+  }
+}
+
+void Buttons::OnDisconnectClick() const {
+  for (const auto& handler : disconnect_click_handlers_) {
     handler();
   }
 }

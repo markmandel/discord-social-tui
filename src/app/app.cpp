@@ -80,6 +80,14 @@ App::App(const uint64_t application_id,
         }
       });
 
+  buttons_->AddVoiceClickHandler([this]() {
+    voice_->Call();
+  });
+
+  buttons_->AddDisconnectClickHandler([this]() {
+    voice_->Disconnect();
+  });
+
   // Horizontal layout with the constrained menu
   container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width_);
   // Wrap main container with loading modal
@@ -149,7 +157,8 @@ void App::StartFriends() const {
                   discordpp::RelationshipType::Friend ||
               relationship.GameRelationshipType() ==
                   discordpp::RelationshipType::Friend) {
-            friends_->AddFriend(std::make_shared<Friend>(user, messages_));
+            friends_->AddFriend(
+                std::make_shared<Friend>(user, messages_, voice_));
           }
           return std::monostate{};
         });
@@ -172,7 +181,8 @@ void App::StartFriends() const {
                       discordpp::RelationshipType::Friend ||
                   relationship.GameRelationshipType() ==
                       discordpp::RelationshipType::Friend) {
-                friends_->AddFriend(std::make_shared<Friend>(user, messages_));
+                friends_->AddFriend(
+                    std::make_shared<Friend>(user, messages_, voice_));
               }
 
               return std::monostate{};

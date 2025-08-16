@@ -42,6 +42,13 @@ class Buttons {
   /// Add a click handler function to be called when Profile button is clicked
   void AddProfileClickHandler(std::function<void()> handler);
 
+  /// Add a click handler function to be called when Voice button is clicked
+  void AddVoiceClickHandler(std::function<void()> handler);
+
+  /// Add a click handler function to be called when Disconnect button is
+  /// clicked
+  void AddDisconnectClickHandler(std::function<void()> handler);
+
  private:
   std::shared_ptr<Friends> friends_;
   std::shared_ptr<Voice> voice_;
@@ -52,12 +59,20 @@ class Buttons {
   ftxui::Component horizontal_container_;
   std::vector<std::function<void()>> dm_click_handlers_;
   std::vector<std::function<void()>> profile_click_handlers_;
+  std::vector<std::function<void()>> voice_click_handlers_;
+  std::vector<std::function<void()>> disconnect_click_handlers_;
 
   /// Call all registered DM click handlers
   void OnDMClick() const;
 
   /// Call all registered Profile click handlers
   void OnProfileClick() const;
+
+  /// Call all registered Voice click handlers
+  void OnVoiceClick() const;
+
+  /// Call all registered Disconnect click handlers
+  void OnDisconnectClick() const;
 };
 
 }  // namespace discord_social_tui

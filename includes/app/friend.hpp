@@ -27,12 +27,14 @@ namespace discord_social_tui {
 
 // Forward declarations
 class Messages;
+class Voice;
 
 // A Friend class to represent a Discord friend
 class Friend {
  public:
-  explicit Friend(discordpp::UserHandle user_handle, 
-                  std::shared_ptr<Messages> messages);
+  explicit Friend(discordpp::UserHandle user_handle,
+                  std::shared_ptr<Messages> messages,
+                  std::shared_ptr<Voice> voice);
 
   [[nodiscard]] uint64_t GetId() const;
   [[nodiscard]] std::string GetUsername() const;
@@ -61,15 +63,10 @@ class Friend {
   // Get status priority (lower number = higher priority)
   static int GetStatusPriority(discordpp::StatusType status);
 
-  // Voice call management
-  [[nodiscard]] const std::optional<discordpp::Call>& GetVoiceCall() const;
-  void SetVoiceCall(const std::optional<discordpp::Call>& call);
-  void ClearVoiceCall();
-
  private:
   discordpp::UserHandle user_handle_;
   std::shared_ptr<Messages> messages_;
-  std::optional<discordpp::Call> voice_call_;
+  std::shared_ptr<Voice> voice_;
   std::vector<discordpp::MessageHandle> message_handlers_;
 };
 
