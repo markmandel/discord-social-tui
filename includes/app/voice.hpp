@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -36,13 +37,13 @@ class Voice {
   void Call();
   void Disconnect();
   /// Listen for invites and then join a voice lobby
-  void Run() const;
+  void Run();
 
   /// Add a change handler function to be called when voice state changes
   void AddChangeHandler(std::function<void()> handler);
 
-  /// Check if there is an active voice call with the given user ID
-  bool HasCall(uint64_t user_id) const;
+  /// Get active voice call for the given user ID
+  std::optional<discordpp::Call> GetCall(uint64_t user_id) const;
 
  private:
   std::shared_ptr<discordpp::Client> client_;

@@ -35,6 +35,7 @@ void Voice::Call() {
 
   SPDLOG_INFO("Invoking Voice::Call! {}", lobby_secret);
 
+  // TODO: we could remove the friends_ dependency if we wanted to and pass in user_id to each function instead.
   client_->CreateOrJoinLobby(
       lobby_secret,
       [this, friend_, lobby_secret](const discordpp::ClientResult& result,
@@ -82,8 +83,8 @@ void Voice::Call() {
                       return;
                     }
                     SPDLOG_INFO("☎️ Voice Call successfully invited");
-                    discordpp::Call call = client_->StartCall(lobby_id);
-                    active_calls_.insert({friend_->GetId(), std::move(call)});
+                    const discordpp::Call call = client_->StartCall(lobby_id);
+                    active_calls_.insert({friend_->GetId(), call});
                     OnChange();
                   });
             });
@@ -96,7 +97,7 @@ void Voice::Disconnect() {
   friends_->GetSelectedFriend().and_then(
       [this](const std::shared_ptr<Friend>& friend_)
           -> std::optional<std::monostate> {
-        return friend_->GetVoiceCall().and_then(
+        return GetCall(friend_->GetId()).and_then(
             [this, friend_](
                 const discordpp::Call& call) -> std::optional<std::monostate> {
               client_->EndCall(call.GetChannelId(), [this, friend_]() {
@@ -111,7 +112,7 @@ void Voice::Disconnect() {
       });
 }
 
-void Voice::Run() const {
+void Voice::Run() {
   SPDLOG_INFO("Starting Voice Service...");
 
   client_->SetActivityInviteCreatedCallback(
@@ -153,7 +154,7 @@ void Voice::Run() const {
                           .and_then([this, call](
                                         const std::shared_ptr<Friend>& friend_)
                                         -> std::optional<std::monostate> {
-                            friend_->SetVoiceCall(call);
+                            active_calls_.insert({friend_->GetId(), call});
                             // TODO: update rich presence when you join a call.
                             OnChange();
                             return std::monostate{};
@@ -174,8 +175,12 @@ void Voice::OnChange() const {
   }
 }
 
-bool Voice::HasCall(uint64_t user_id) const {
-  return active_calls_.contains(user_id);
+std::optional<discordpp::Call> Voice::GetCall(const uint64_t user_id) const {
+  const auto it = active_calls_.find(user_id);
+  if (it != active_calls_.end()) {
+    return it->second;
+  }
+  return std::nullopt;
 }
 
 }  // namespace discord_social_tui
