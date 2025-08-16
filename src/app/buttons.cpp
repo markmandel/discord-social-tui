@@ -60,12 +60,12 @@ const ftxui::Component& Buttons::GetComponent() const {
 }
 
 void Buttons::VoiceChanged() const {
-  bool has_call = false;
-  if (const auto selected_friend = friends_->GetSelectedFriend()) {
-    has_call = voice_->HasCall(selected_friend.value()->GetId());
-  }
+  const auto call = friends_->GetSelectedFriend().and_then(
+      [this](const auto& friend_) -> std::optional<discordpp::Call> {
+        return voice_->GetCall(friend_->GetId());
+      });
 
-  if (has_call) {
+  if (call) {
     SPDLOG_DEBUG("Had a call!");
     if (disconnect_button_->Parent() == nullptr) {
       voice_button_->Detach();
