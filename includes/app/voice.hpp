@@ -41,6 +41,9 @@ class Voice {
   /// Add a change handler function to be called when voice state changes
   void AddChangeHandler(std::function<void()> handler);
 
+  /// Check if there is an active voice call with the given user ID
+  bool HasCall(uint64_t user_id) const;
+
  private:
   std::shared_ptr<discordpp::Client> client_;
   std::shared_ptr<Friends> friends_;

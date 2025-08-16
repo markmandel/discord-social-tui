@@ -174,4 +174,8 @@ void Voice::OnChange() const {
   }
 }
 
+bool Voice::HasCall(uint64_t user_id) const {
+  return active_calls_.contains(user_id);
+}
+
 }  // namespace discord_social_tui
