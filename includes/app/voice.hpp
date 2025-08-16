@@ -34,7 +34,7 @@ class Voice {
 
   /// Initiate a voice call with the currently selected friend.
   void Call();
-  void Disconnect() const;
+  void Disconnect();
   /// Listen for invites and then join a voice lobby
   void Run() const;
 

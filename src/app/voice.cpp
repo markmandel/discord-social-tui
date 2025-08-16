@@ -92,7 +92,7 @@ void Voice::Call() {
 
 // TODO: Update rich presence when the other person joins the call.
 
-void Voice::Disconnect() const {
+void Voice::Disconnect() {
   friends_->GetSelectedFriend().and_then(
       [this](const std::shared_ptr<Friend>& friend_)
           -> std::optional<std::monostate> {
@@ -100,7 +100,7 @@ void Voice::Disconnect() const {
             [this, friend_](
                 const discordpp::Call& call) -> std::optional<std::monostate> {
               client_->EndCall(call.GetChannelId(), [this, friend_]() {
-                friend_->ClearVoiceCall();
+                active_calls_.erase(friend_->GetId());
                 // TODO: Update rich presence to turn off the call.
                 OnChange();
                 SPDLOG_INFO("Call ended successfully!");
