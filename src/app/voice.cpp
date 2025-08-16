@@ -20,7 +20,7 @@
 
 namespace discord_social_tui {
 
-void Voice::Call() const {
+void Voice::Call() {
   const auto current_user = client_->GetCurrentUser();
   const auto selected_friend = friends_->GetSelectedFriend();
 
@@ -82,8 +82,8 @@ void Voice::Call() const {
                       return;
                     }
                     SPDLOG_INFO("☎️ Voice Call successfully invited");
-                    auto call = client_->StartCall(lobby_id);
-                    friend_->SetVoiceCall(call);
+                    discordpp::Call call = client_->StartCall(lobby_id);
+                    active_calls_.insert({friend_->GetId(), std::move(call)});
                     OnChange();
                   });
             });

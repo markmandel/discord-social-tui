@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "discordpp.h"
@@ -32,7 +33,7 @@ class Voice {
       : client_(client), friends_(friends) {}
 
   /// Initiate a voice call with the currently selected friend.
-  void Call() const;
+  void Call();
   void Disconnect() const;
   /// Listen for invites and then join a voice lobby
   void Run() const;
@@ -44,6 +45,7 @@ class Voice {
   std::shared_ptr<discordpp::Client> client_;
   std::shared_ptr<Friends> friends_;
   std::vector<std::function<void()>> change_handlers_;
+  std::unordered_map<u_int64_t, discordpp::Call> active_calls_;
 
   /// Call all registered change handlers
   void OnChange() const;
