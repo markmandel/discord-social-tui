@@ -68,9 +68,10 @@ std::string Friend::GetFormattedDisplayName() const {
       break;
   }
 
-  if (GetVoiceCall().has_value()) {
-    status_emoji += "🔉";
-  }
+  // TOXO: make this work again.
+  // if (GetVoiceCall().has_value()) {
+  //   status_emoji += "🔉";
+  // }
 
   if (messages_->HasUnreadMessages(GetId())) {
      status_emoji += "📨";
@@ -141,16 +142,6 @@ bool Friend::operator!=(const Friend& other) const {
   // a != b is equivalent to !(a == b)
   return !(*this == other);
 }
-
-const std::optional<discordpp::Call>& Friend::GetVoiceCall() const {
-  return voice_call_;
-}
-
-void Friend::SetVoiceCall(const std::optional<discordpp::Call>& call) {
-  voice_call_ = call;
-}
-
-void Friend::ClearVoiceCall() { voice_call_.reset(); }
 
 static_assert(std::equality_comparable<Friend>);
 static_assert(std::totally_ordered<Friend>);

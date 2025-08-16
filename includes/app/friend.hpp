@@ -61,15 +61,9 @@ class Friend {
   // Get status priority (lower number = higher priority)
   static int GetStatusPriority(discordpp::StatusType status);
 
-  // Voice call management
-  [[nodiscard]] const std::optional<discordpp::Call>& GetVoiceCall() const;
-  void SetVoiceCall(const std::optional<discordpp::Call>& call);
-  void ClearVoiceCall();
-
  private:
   discordpp::UserHandle user_handle_;
   std::shared_ptr<Messages> messages_;
-  std::optional<discordpp::Call> voice_call_;
   std::vector<discordpp::MessageHandle> message_handlers_;
 };
 
