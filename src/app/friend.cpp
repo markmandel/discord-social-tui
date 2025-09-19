@@ -20,14 +20,18 @@
 
 #include "app/messages.hpp"
 #include "app/voice.hpp"
+#include "ftxui/component/component.hpp"
+#include "ftxui/component/event.hpp"
 
 namespace discord_social_tui {
 
 Friend::Friend(discordpp::UserHandle user_handle,
-               std::shared_ptr<Messages> messages, std::shared_ptr<Voice> voice)
+               std::shared_ptr<Messages> messages, std::shared_ptr<Voice> voice,
+               const discordpp::RelationshipGroupType group_type)
     : user_handle_(std::move(user_handle)),
       messages_(std::move(messages)),
-      voice_(std::move(voice)) {}
+      voice_(std::move(voice)),
+      group_type_(group_type) {}
 
 uint64_t Friend::GetId() const { return user_handle_.Id(); }
 
@@ -43,6 +47,10 @@ std::string Friend::GetDisplayName() const {
 
 discordpp::StatusType Friend::GetStatus() const {
   return user_handle_.Status();
+}
+
+discordpp::RelationshipGroupType Friend::GetGroupType() const {
+  return group_type_;
 }
 
 std::string Friend::GetFormattedDisplayName() const {
@@ -81,119 +89,30 @@ std::string Friend::GetFormattedDisplayName() const {
   return status_emoji + " " + GetDisplayName();
 }
 
-int Friend::GetStatusPriority(const discordpp::StatusType status) {
-  // Order of priority: Online, Idle, Dnd, Invisible, Offline, Blocked
-  switch (status) {
-    case discordpp::StatusType::Online:
-      return 0;
-    case discordpp::StatusType::Idle:
-      return 1;
-    case discordpp::StatusType::Dnd:
-      return 2;
-    case discordpp::StatusType::Invisible:
-      return 3;
-    case discordpp::StatusType::Offline:
-      return 4;
-    case discordpp::StatusType::Blocked:
-      return 5;
-    default:
-      return 6;  // Any unknown status comes last
-  }
-}
-
-bool Friend::operator<(const Friend& other) const {
-  // First compare by status priority
-  const int status_a = GetStatusPriority(GetStatus());
-  const int status_b = GetStatusPriority(other.GetStatus());
-
-  if (status_a != status_b) {
-    return status_a < status_b;  // Lower priority number comes first
-  }
-
-  // If status is the same, compare alphabetically by display name
-  if (GetDisplayName() != other.GetDisplayName()) {
-    return GetDisplayName() < other.GetDisplayName();
-  }
-
-  // stable sorting
-  return GetId() < other.GetId();
-}
-
-bool Friend::operator>(const Friend& other) const {
-  // Reuse the < operator for consistency
-  return other < *this;
-}
-
-bool Friend::operator<=(const Friend& other) const {
-  // a <= b is equivalent to !(a > b)
-  return !(*this > other);
-}
-
-bool Friend::operator>=(const Friend& other) const {
-  // a >= b is equivalent to !(a < b)
-  return !(*this < other);
-}
-
-bool Friend::operator==(const Friend& other) const {
-  // Friends are equal if they have the same ID
-  return GetId() == other.GetId();
-}
-
-bool Friend::operator!=(const Friend& other) const {
-  // a != b is equivalent to !(a == b)
-  return !(*this == other);
-}
-
-static_assert(std::equality_comparable<Friend>);
-static_assert(std::totally_ordered<Friend>);
-
-void Friends::AddFriend(std::shared_ptr<Friend> friend_) {
-  SPDLOG_DEBUG("Adding friend: {}", friend_->GetUsername());
-
-  auto selected = GetSelectedFriend();
-
-  // Find the position to insert using binary search
-  // We need to dereference the shared_ptrs to compare Friend objects
-  const auto pos = std::ranges::lower_bound(
-      friends_, friend_, [](const auto& friend_a, const auto& friend_b) {
-        // Compare the Friend objects using the operator< we defined
-        return *friend_a < *friend_b;
-      });
-
-  // Insert the friend at the correct position
-  friends_.insert(pos, std::move(friend_));
-  SPDLOG_DEBUG("Friend {} inserted at position {}", friend_->GetUsername(),
-               std::distance(friends_.begin(), pos));
-  selected.and_then(
-      [&](const auto& selected_friend) -> std::optional<std::monostate> {
-        SetSelectedIndexByFriendId(selected_friend->GetId());
-        return std::nullopt;
-      });
-}
-
-void Friends::RemoveFriend(uint64_t user_id) {
-  const auto iterator = std::ranges::find_if(
-      friends_,
-      [user_id](const auto& friend_) { return friend_->GetId() == user_id; });
-
-  if (iterator != friends_.end()) {
-    SPDLOG_DEBUG("Removing friend: {}", (*iterator)->GetUsername());
-    auto selected = GetSelectedFriend();
-    friends_.erase(iterator);
-
-    selected.and_then(
-        [&](const auto& selected_friend) -> std::optional<std::monostate> {
-          SetSelectedIndexByFriendId(selected_friend->GetId());
-          return std::nullopt;
-        });
-  } else {
-    spdlog::warn("Friend not found with ID: {}", user_id);
-  }
+Friends::Friends(std::shared_ptr<discordpp::Client> client,
+                 std::shared_ptr<Messages> messages,
+                 std::shared_ptr<Voice> voice)
+    : menu_entries_(ftxui::Container::Vertical(std::vector<ftxui::Component>{},
+                                               &selected_index_)),
+      client_(std::move(client)),
+      messages_(std::move(messages)),
+      voice_(std::move(voice)) {
+  // Re-wrap with OnEvent handler and scrolling
+  this->menu_component_ =
+      menu_entries_ | ftxui::CatchEvent([this](const ftxui::Event&) -> bool {
+        if (selected_index_ != last_selected_index_) {
+          last_selected_index_ = selected_index_;
+          NotifySelectionChanged();
+        }
+        return false;  // Don't consume the event
+      }) |
+      ftxui::vscroll_indicator | ftxui::yframe;
 }
 
 std::optional<std::shared_ptr<Friend>> Friends::GetFriendAt(
     const size_t index) const {
   if (index < friends_.size()) {
+    // Return the optional value (which may be nullopt for headers)
     return friends_[index];
   }
   return std::nullopt;
@@ -201,37 +120,18 @@ std::optional<std::shared_ptr<Friend>> Friends::GetFriendAt(
 
 std::optional<std::shared_ptr<Friend>> Friends::GetFriendById(
     uint64_t user_id) {
-  const auto iterator = std::ranges::find_if(
-      friends_,
-      [user_id](const auto& friend_) { return friend_->GetId() == user_id; });
-
-  return (iterator != friends_.end()) ? std::optional{*iterator} : std::nullopt;
-}
-
-void Friends::SortFriends() {
-  auto selected = GetSelectedFriend();
-
-  // Use projection to dereference the unique_ptr and compare the Friend objects
-  std::ranges::sort(friends_, {},
-                    [](const auto& ptr) -> const Friend& { return *ptr; });
-
-  selected.and_then(
-      [&](const auto& selected_friend) -> std::optional<std::monostate> {
-        SetSelectedIndexByFriendId(selected_friend->GetId());
-        return std::nullopt;
+  const auto iterator =
+      std::ranges::find_if(friends_, [user_id](const auto& friend_opt) {
+        return friend_opt.has_value() && friend_opt.value()->GetId() == user_id;
       });
-}
 
-std::string Friends::operator[](const size_t index) const {
-  if (index < friends_.size()) {
-    return friends_[index]->GetFormattedDisplayName();
-  }
-  return "";
+  return (iterator != friends_.end()) ? *iterator : std::nullopt;
 }
 
 void Friends::SetSelectedIndexByFriendId(uint64_t user_id) {
   for (size_t i = 0; i < friends_.size(); ++i) {
-    if (friends_[i]->GetId() == user_id) {
+    if (auto friend_ = friends_[i];
+        friend_ && friend_.value()->GetId() == user_id) {
       selected_index_ = static_cast<int>(i);
       return;
     }
@@ -239,6 +139,105 @@ void Friends::SetSelectedIndexByFriendId(uint64_t user_id) {
   // If friend is not found, keep the current selection
   spdlog::warn("Friend with ID {} not found, keeping current selection",
                user_id);
+}
+
+void Friends::NotifySelectionChanged() const {
+  for (const auto& handler : selection_change_handlers_) {
+    handler();
+  }
+}
+
+void Friends::AddSelectionChangeHandler(std::function<void()> handler) {
+  selection_change_handlers_.push_back(std::move(handler));
+}
+
+void Friends::Run() {
+  // Set up the unified friends list update callback
+  client_->SetRelationshipGroupsUpdatedCallback(
+      [this](const uint64_t _user_id) { Refresh(); });
+  voice_->AddChangeHandler([this] { Refresh(); });
+  messages_->AddUnreadChangeHandler([this] { Refresh(); });
+}
+
+void Friends::Refresh() {
+  SPDLOG_INFO("Refreshing friends list");
+  if (!menu_entries_) {
+    SPDLOG_WARN("Cannot refresh friends list: menu component not yet created");
+    return;
+  }
+
+  const auto selected_id =
+      GetSelectedFriend()
+          .transform([](const std::shared_ptr<Friend>& friend_) {
+            return friend_->GetId();
+          })
+          .value_or(-1);
+
+  const auto online_playing = client_->GetRelationshipsByGroup(
+      discordpp::RelationshipGroupType::OnlinePlayingGame);
+  const auto online_elsewhere = client_->GetRelationshipsByGroup(
+      discordpp::RelationshipGroupType::OnlineElsewhere);
+  const auto offline = client_->GetRelationshipsByGroup(
+      discordpp::RelationshipGroupType::Offline);
+
+  // rebuild friends, so we can find them again.
+  friends_.clear();
+  // Remove all menu entries and rebuild!
+  menu_entries_->DetachAllChildren();
+
+  // Add "Online Playing" header
+  menu_entries_->Add(
+      ftxui::Renderer([] { return ftxui::text("Online Playing"); }));
+  friends_.emplace_back(std::nullopt);  // Header position
+
+  for (const auto& relationship : online_playing) {
+    if (auto user = relationship.User()) {
+      auto friend_ = std::make_shared<Friend>(
+          user.value(), messages_, voice_,
+          discordpp::RelationshipGroupType::OnlinePlayingGame);
+      menu_entries_->Add(ftxui::MenuEntry(*friend_));
+      friends_.emplace_back(std::move(friend_));
+    }
+  }
+
+  // Add "Online Elsewhere" header
+  menu_entries_->Add(
+      ftxui::Renderer([] { return ftxui::text("Online Elsewhere"); }));
+  friends_.emplace_back(std::nullopt);  // Header position
+
+  for (const auto& relationship : online_elsewhere) {
+    if (auto user = relationship.User()) {
+      auto friend_ = std::make_shared<Friend>(
+          user.value(), messages_, voice_,
+          discordpp::RelationshipGroupType::OnlineElsewhere);
+      menu_entries_->Add(ftxui::MenuEntry(*friend_));
+      friends_.emplace_back(std::move(friend_));
+    }
+  }
+
+  // Add "Offline" header
+  menu_entries_->Add(ftxui::Renderer([] { return ftxui::text("Offline"); }));
+  friends_.emplace_back(std::nullopt);  // Header position
+
+  for (const auto& relationship : offline) {
+    if (auto user = relationship.User()) {
+      auto friend_ =
+          std::make_shared<Friend>(user.value(), messages_, voice_,
+                                   discordpp::RelationshipGroupType::Offline);
+      menu_entries_->Add(ftxui::MenuEntry(*friend_));
+      friends_.emplace_back(std::move(friend_));
+    }
+  }
+
+  // keep pointing at the same person
+  if (selected_id > 0) {
+    SetSelectedIndexByFriendId(selected_id);
+  }
+}
+
+ftxui::Component Friends::Render() {
+  // Build initial menu entries
+  return menu_component_;
 }
 
 }  // namespace discord_social_tui

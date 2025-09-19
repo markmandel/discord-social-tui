@@ -41,25 +41,24 @@ class App {
   // Width of the left menu
   static constexpr int LEFT_WIDTH = 20;
 
-  // Friends list
-  std::shared_ptr<Friends> friends_;
-
   // Application configuration
   uint64_t application_id_;
 
   // Discord client
   std::shared_ptr<discordpp::Client> client_;
 
-  // Voice calling
+  // Voice calling (initialized before friends_)
   std::shared_ptr<Voice> voice_;
 
-  // Messages
+  // Messages (initialized before friends_)
   std::shared_ptr<Messages> messages_;
+
+  // Friends list (depends on voice_ and messages_)
+  std::shared_ptr<Friends> friends_;
 
   // Components
   int left_width_;
 
-  ftxui::Component menu_;
   ftxui::Component container_;
   ftxui::ScreenInteractive screen_;
   bool show_authenticating_modal_;
@@ -75,7 +74,6 @@ class App {
   void Ready();
   void Authorize();
   void Presence() const;
-  void StartFriends() const;
 };
 
 }  // namespace discord_social_tui

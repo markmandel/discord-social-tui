@@ -27,8 +27,11 @@ namespace discord_social_tui {
 
 class Messages {
  public:
-  explicit Messages(const std::shared_ptr<discordpp::Client>& client,
-                    const std::shared_ptr<Friends>& friends);
+  explicit Messages(const std::shared_ptr<discordpp::Client>& client);
+
+  /// Set the Friends reference (used to break circular dependency)
+  void SetFriends(const std::shared_ptr<Friends>& friends);
+
   void Run();
   /// Resets the selected user has unread messages.
   void ResetSelectedUnreadMessages();
@@ -37,6 +40,9 @@ class Messages {
 
   /// Render the messages UI component
   [[nodiscard]] ftxui::Component Render();
+
+  // Add a callback for when incoming unread messages state changes
+  void AddUnreadChangeHandler(std::function<void()> handler);
 
  private:
   std::shared_ptr<discordpp::Client> client_;
@@ -49,10 +55,12 @@ class Messages {
       user_messages_;
   // does the user have unread messages
   std::unordered_map<u_int64_t, bool> unread_messages_;
+  std::vector<std::function<void()>> unread_change_handlers_;
 
   void SendMessage();
   void AddUserMessage(uint64_t message_id);
   std::vector<discordpp::MessageHandle> GetMessages(uint64_t user_id);
+  void OnUnreadChange() const;
 };
 
 }  // namespace discord_social_tui

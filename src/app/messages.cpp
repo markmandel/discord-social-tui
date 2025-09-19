@@ -22,9 +22,8 @@
 
 namespace discord_social_tui {
 
-Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
-                   const std::shared_ptr<Friends>& friends)
-    : client_(client), friends_(friends) {
+Messages::Messages(const std::shared_ptr<discordpp::Client>& client)
+    : client_(client) {
   // Initialize UI components
   auto option = ftxui::InputOption();
   option.multiline = false;
@@ -53,18 +52,13 @@ Messages::Messages(const std::shared_ptr<discordpp::Client>& client,
   send_button_ = ftxui::Button("Send", [this] { SendMessage(); });
 }
 
+void Messages::SetFriends(const std::shared_ptr<Friends>& friends) {
+  friends_ = friends;
+}
+
 void Messages::Run() {
   client_->SetMessageCreatedCallback(
       [this](const uint64_t message_id) { AddUserMessage(message_id); });
-}
-
-void Messages::ResetSelectedUnreadMessages() {
-  friends_->GetSelectedFriend().and_then(
-      [this](const std::shared_ptr<Friend>& friend_)
-          -> std::optional<std::monostate> {
-        unread_messages_[friend_->GetId()] = false;
-        return std::monostate{};
-      });
 }
 
 ftxui::Component Messages::Render() {
@@ -162,37 +156,62 @@ void Messages::SendMessage() {
         return std::monostate{};
       });
 }
+
 void Messages::AddUserMessage(const uint64_t message_id) {
   client_->GetMessageHandle(message_id)
       .and_then([this](const discordpp::MessageHandle& message)
                     -> std::optional<std::monostate> {
         SPDLOG_INFO("New message received: {} - {}", message.AuthorId(),
                     message.Content());
-        const auto current_user = client_->GetCurrentUser();
+        const auto current_user = client_->GetCurrentUserV2();
 
-        uint64_t id = 0;
+        if (!current_user) {
+          SPDLOG_ERROR("Current user not available");
+          return std::nullopt;
+        }
+
+        uint64_t user_id = 0;
         // store my own messages against the recipient
-        if (message.AuthorId() == current_user.Id()) {
-          id = message.RecipientId();
+        if (message.AuthorId() == current_user->Id()) {
+          user_id = message.RecipientId();
         } else {
-          id = message.AuthorId();
+          user_id = message.AuthorId();
 
-          // if not on the same user, then set it to not being read.
-          friends_->GetSelectedFriend().and_then(
-              [this, id](const std::shared_ptr<Friend>& friend_)
-                  -> std::optional<std::monostate> {
-                if (friend_->GetId() != id) {
-                  unread_messages_[id] = true;
+          // if nothing selected, or not on the same user, then set it to not
+          // being read.
+          friends_->GetSelectedFriend()
+              .and_then([this, user_id](const std::shared_ptr<Friend>& friend_)
+                            -> std::optional<std::monostate> {
+                // TODO: also check if the messages component is being
+                // displayed, if not it doesn't matter if the selected user is
+                // the same.
+                if (friend_->GetId() != user_id) {
+                  unread_messages_[user_id] = true;
                 }
+                return std::monostate{};
+              })
+              .or_else([this, user_id] -> std::optional<std::monostate> {
+                unread_messages_[user_id] = true;
                 return std::monostate{};
               });
         }
 
-        if (!user_messages_.contains(id)) {
-          user_messages_[id] = std::vector<discordpp::MessageHandle>();
+        if (!user_messages_.contains(user_id)) {
+          user_messages_[user_id] = std::vector<discordpp::MessageHandle>();
         }
-        user_messages_[id].push_back(message);
+        user_messages_[user_id].push_back(message);
+        OnUnreadChange();
 
+        return std::monostate{};
+      });
+}
+
+void Messages::ResetSelectedUnreadMessages() {
+  friends_->GetSelectedFriend().and_then(
+      [this](const std::shared_ptr<Friend>& friend_)
+          -> std::optional<std::monostate> {
+        unread_messages_[friend_->GetId()] = false;
+        OnUnreadChange();
         return std::monostate{};
       });
 }
@@ -209,6 +228,16 @@ bool Messages::HasUnreadMessages(const uint64_t user_id) const {
     return false;
   }
   return unread_messages_.at(user_id);
+}
+
+void Messages::AddUnreadChangeHandler(std::function<void()> handler) {
+  unread_change_handlers_.push_back(std::move(handler));
+}
+
+void Messages::OnUnreadChange() const {
+  for (const auto& handler : unread_change_handlers_) {
+    handler();
+  }
 }
 
 }  // namespace discord_social_tui

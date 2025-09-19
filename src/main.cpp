@@ -170,7 +170,7 @@ void StartDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
       [](const std::string& message,
          const discordpp::LoggingSeverity severity) {
         // Make message safe for JSON
-        std::string json_safe_message = MakeJsonSafe(message);
+        const std::string json_safe_message = MakeJsonSafe(message);
 
         switch (severity) {
           case discordpp::LoggingSeverity::Verbose:

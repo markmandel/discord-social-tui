@@ -16,6 +16,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <iostream>
 #include <optional>
 #include <utility>
 
@@ -29,11 +30,11 @@ namespace discord_social_tui {
 // Constructor for the App class
 App::App(const uint64_t application_id,
          const std::shared_ptr<discordpp::Client>& client)
-    : friends_{std::make_shared<Friends>()},
-      application_id_{application_id},
+    : application_id_{application_id},
       client_{client},
-      voice_{std::make_shared<Voice>(client, friends_)},
-      messages_{std::make_shared<Messages>(client, friends_)},
+      voice_{std::make_shared<Voice>(client)},
+      messages_{std::make_shared<Messages>(client)},
+      friends_{std::make_shared<Friends>(client, messages_, voice_)},
       left_width_{LEFT_WIDTH},
       screen_{ftxui::ScreenInteractive::Fullscreen()},
       show_authenticating_modal_{false},
@@ -43,6 +44,10 @@ App::App(const uint64_t application_id,
   SPDLOG_INFO("App initialized with Discord Application ID: {}",
               application_id_);
 
+  // Set Friends reference in Voice and Messages to break circular dependency
+  voice_->SetFriends(friends_);
+  messages_->SetFriends(friends_);
+
   auto profile_component = profile_->Render();
   auto messages_component = messages_->Render() | ftxui::flex;
   // Content container with button row and content area
@@ -51,16 +56,13 @@ App::App(const uint64_t application_id,
       profile_component,
   });
 
-  auto options = ftxui::MenuOption::Vertical();
-  options.on_change = [this, messages_component]() {
+  // Add selection change handler
+  friends_->AddSelectionChangeHandler([this, messages_component]() {
     buttons_->VoiceChanged();
     if (messages_component->Parent() != nullptr) {
       messages_->ResetSelectedUnreadMessages();
     }
-  };
-  // Left side menu component - use Friends' internal selection index
-  menu_ = ftxui::Menu(friends_.get(), friends_->GetSelectedIndex(), options) |
-          ftxui::vscroll_indicator | ftxui::yframe;
+  });
 
   buttons_->AddProfileClickHandler(
       [profile_component, messages_component, content]() {
@@ -80,16 +82,13 @@ App::App(const uint64_t application_id,
         }
       });
 
-  buttons_->AddVoiceClickHandler([this]() {
-    voice_->Call();
-  });
+  buttons_->AddVoiceClickHandler([this]() { voice_->Call(); });
 
-  buttons_->AddDisconnectClickHandler([this]() {
-    voice_->Disconnect();
-  });
+  buttons_->AddDisconnectClickHandler([this]() { voice_->Disconnect(); });
 
   // Horizontal layout with the constrained menu
-  container_ = ftxui::ResizableSplitLeft(menu_, content, &left_width_);
+  container_ =
+      ftxui::ResizableSplitLeft(friends_->Render(), content, &left_width_);
   // Wrap main container with loading modal
   container_ = AuthenticatingModal(container_);
 }
@@ -134,66 +133,10 @@ void App::StartStatusChangedCallback() {
 void App::Ready() {
   // Hide the modal
   show_authenticating_modal_ = false;
-
   // Set up rich presence
   Presence();
-  StartFriends();
-}
-
-// Function to initialize friends and track their status changes
-void App::StartFriends() const {
-  // In a real application, these would be actual UserHandles from the Discord
-  // SDK For now, we just log that this would happen here
-  SPDLOG_INFO("Initializing friends...");
-
-  for (auto& relationship : client_->GetRelationships()) {
-    relationship.User().and_then(
-        [&](const auto& user) -> std::optional<std::monostate> {
-          // Log information about the friend we're adding
-          SPDLOG_DEBUG("Found friend: {} (ID: {})", user.Username(), user.Id());
-
-          // Only show if a real friend.
-          if (relationship.DiscordRelationshipType() ==
-                  discordpp::RelationshipType::Friend ||
-              relationship.GameRelationshipType() ==
-                  discordpp::RelationshipType::Friend) {
-            friends_->AddFriend(
-                std::make_shared<Friend>(user, messages_, voice_));
-          }
-          return std::monostate{};
-        });
-  }
-
-  // resort friends when their status updates
-  client_->SetUserUpdatedCallback(
-      [&](uint64_t user_id) { friends_->SortFriends(); });
-
-  client_->SetRelationshipCreatedCallback(
-      [&](uint64_t user_id, bool isDiscordRelationshipUpdate) {
-        client_->GetUser(user_id).and_then(
-            [&](const auto& user) -> std::optional<std::monostate> {
-              SPDLOG_INFO("🔥 Relationship created: {} (ID: {})",
-                          user.Username(), user.Id());
-
-              auto const relationship = user.Relationship();
-              // Only show if a real friend
-              if (relationship.DiscordRelationshipType() ==
-                      discordpp::RelationshipType::Friend ||
-                  relationship.GameRelationshipType() ==
-                      discordpp::RelationshipType::Friend) {
-                friends_->AddFriend(
-                    std::make_shared<Friend>(user, messages_, voice_));
-              }
-
-              return std::monostate{};
-            });
-      });
-
-  client_->SetRelationshipDeletedCallback(
-      [&](uint64_t userId, bool isDiscordRelationshipUpdate) {
-        SPDLOG_INFO("🔥 Relationship deleted (ID: {})", userId);
-        friends_->RemoveFriend(userId);
-      });
+  // initial load of friends
+  friends_->Refresh();
 }
 
 // Set rich presence for the Discord client
@@ -288,6 +231,7 @@ int App::Run() {
   // Start the authorization process
   Authorize();
 
+  friends_->Run();
   // Start the voice process
   voice_->Run();
   // Start tracking messages.

@@ -21,8 +21,13 @@
 namespace discord_social_tui {
 
 void Voice::Call() {
-  const auto current_user = client_->GetCurrentUser();
+  const auto current_user = client_->GetCurrentUserV2();
   const auto selected_friend = friends_->GetSelectedFriend();
+
+  if (!current_user) {
+    SPDLOG_ERROR("Current user not available");
+    return;
+  }
 
   if (!selected_friend) {
     SPDLOG_ERROR("No friend selected for voice call");
@@ -30,8 +35,9 @@ void Voice::Call() {
   }
 
   const auto& friend_ = selected_friend.value();
-  const std::string lobby_secret = VOICE_CALL_PREFIX + current_user.Username() +
-                                   ":" + friend_->GetUsername();
+  const std::string lobby_secret = VOICE_CALL_PREFIX +
+                                   current_user->Username() + ":" +
+                                   friend_->GetUsername();
 
   SPDLOG_INFO("Invoking Voice::Call! {}", lobby_secret);
 
@@ -164,7 +170,8 @@ void Voice::Run() {
       });
 }
 
-// TODO: not quite sure how to do this, but if the other person in the lobby drops, then disconnect the call automatically.
+// TODO: not quite sure how to do this, but if the other person in the lobby
+// drops, then disconnect the call automatically.
 
 void Voice::AddChangeHandler(std::function<void()> handler) {
   change_handlers_.push_back(std::move(handler));
@@ -177,9 +184,9 @@ void Voice::OnChange() const {
 }
 
 std::optional<discordpp::Call> Voice::GetCall(const uint64_t user_id) const {
-  const auto it = active_calls_.find(user_id);
-  if (it != active_calls_.end()) {
-    return it->second;
+  const auto entry = active_calls_.find(user_id);
+  if (entry != active_calls_.end()) {
+    return entry->second;
   }
   return std::nullopt;
 }

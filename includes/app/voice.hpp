@@ -29,9 +29,13 @@ static constexpr std::string VOICE_CALL_PREFIX = "call::";
 
 class Voice {
  public:
-  explicit Voice(const std::shared_ptr<discordpp::Client> &client,
-                 const std::shared_ptr<Friends> &friends)
-      : client_(client), friends_(friends) {}
+  explicit Voice(const std::shared_ptr<discordpp::Client> &client)
+      : client_(client) {}
+
+  /// Set the Friends reference (used to break circular dependency)
+  void SetFriends(const std::shared_ptr<Friends> &friends) {
+    friends_ = friends;
+  }
 
   /// Initiate a voice call with the currently selected friend.
   void Call();
