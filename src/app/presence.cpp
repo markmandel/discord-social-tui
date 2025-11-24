@@ -28,18 +28,20 @@ void Presence::SetDefaultPresence() const {
   client_->UpdateRichPresence(activity,
                               [](const discordpp::ClientResult& result) {
                                 if (result.Successful()) {
-                                  SPDLOG_INFO("Rich Presence updated "
-                                              "successfully");
+                                  SPDLOG_INFO(
+                                      "Rich Presence updated "
+                                      "successfully");
                                 } else {
-                                  SPDLOG_ERROR("Rich Presence update failed: "
-                                               "{}",
-                                               result.Error());
+                                  SPDLOG_ERROR(
+                                      "Rich Presence update failed: "
+                                      "{}",
+                                      result.Error());
                                 }
                               });
 }
 
 void Presence::SetVoiceCallPresence(const std::string& lobby_secret,
-                                    OnSuccessCallback on_success) const {
+                                    const OnSuccessCallback& on_success) const {
   auto activity = discordpp::Activity();
   activity.SetType(discordpp::ActivityTypes::Playing);
   activity.SetDetails("Making a phone call...");
@@ -65,8 +67,7 @@ void Presence::SetVoiceCallPresence(const std::string& lobby_secret,
             on_success();
           }
         } else {
-          SPDLOG_ERROR("Voice call presence update failed: {}",
-                       result.Error());
+          SPDLOG_ERROR("Voice call presence update failed: {}", result.Error());
         }
       });
 }

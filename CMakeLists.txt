@@ -23,6 +23,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Generate compile_commands.json for clang-tidy
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # RPATH settings for finding shared libraries
 if (UNIX AND NOT APPLE)
     set(CMAKE_INSTALL_RPATH "$ORIGIN")
@@ -124,15 +127,36 @@ file(GLOB_RECURSE SOURCE_FILES
 # Add lint target for running clang-format and clang-tidy
 find_program(CLANG_FORMAT clang-format)
 find_program(CLANG_TIDY clang-tidy)
+find_program(RUN_CLANG_TIDY run-clang-tidy)
 
-set(TIDY_CHECKS "-checks=bugprone-*,cppcoreguidelines-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type,-readability-magic-numbers,-bugprone-lambda-function-name")
+set(TIDY_CHECKS "bugprone-*,cppcoreguidelines-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type,-readability-magic-numbers,-bugprone-lambda-function-name")
 
-if (CLANG_FORMAT AND CLANG_TIDY)
+# Determine number of parallel jobs (use nproc if available, otherwise default)
+if(UNIX)
+    execute_process(COMMAND nproc OUTPUT_VARIABLE NUM_CORES
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT NUM_CORES)
+        set(NUM_CORES 4)
+    endif()
+else()
+    set(NUM_CORES 4)
+endif()
+
+if (CLANG_FORMAT AND RUN_CLANG_TIDY)
+    add_custom_target(lint
+            COMMAND ${CMAKE_COMMAND} -E echo "Running clang-format on source files..."
+            COMMAND ${CLANG_FORMAT} -i ${SOURCE_FILES}
+            COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy on source files (parallel with ${NUM_CORES} jobs)..."
+            COMMAND ${RUN_CLANG_TIDY} -j ${NUM_CORES} -p ${CMAKE_BINARY_DIR} -checks=${TIDY_CHECKS} -quiet ${SOURCE_FILES}
+            COMMENT "Running code quality tools"
+            VERBATIM
+    )
+elseif (CLANG_FORMAT AND CLANG_TIDY)
     add_custom_target(lint
             COMMAND ${CMAKE_COMMAND} -E echo "Running clang-format on source files..."
             COMMAND ${CLANG_FORMAT} -i ${SOURCE_FILES}
             COMMAND ${CMAKE_COMMAND} -E echo "Running clang-tidy on source files..."
-            COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CLANG_TIDY} ${TIDY_CHECKS} ${SOURCE_FILES} -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/build/_deps/spdlog-src/include -I${CMAKE_SOURCE_DIR}/includes -I${DISCORD_SDK_INCLUDE_DIR}
+            COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CLANG_TIDY} -checks=${TIDY_CHECKS} ${SOURCE_FILES} -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/build/_deps/spdlog-src/include -I${CMAKE_SOURCE_DIR}/includes -I${DISCORD_SDK_INCLUDE_DIR}
             COMMENT "Running code quality tools"
             VERBATIM
     )
@@ -143,10 +167,17 @@ elseif (CLANG_FORMAT)
             COMMENT "Running clang-format only"
             VERBATIM
     )
+elseif (RUN_CLANG_TIDY)
+    add_custom_target(lint
+            COMMAND ${CMAKE_COMMAND} -E echo "clang-format not found. Only linting was performed."
+            COMMAND ${RUN_CLANG_TIDY} -j ${NUM_CORES} -p ${CMAKE_BINARY_DIR} -checks=${TIDY_CHECKS} -quiet ${SOURCE_FILES}
+            COMMENT "Running clang-tidy only (parallel)"
+            VERBATIM
+    )
 elseif (CLANG_TIDY)
     add_custom_target(lint
             COMMAND ${CMAKE_COMMAND} -E echo "clang-format not found. Only linting was performed."
-            COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CLANG_TIDY} ${TIDY_CHECKS} ${SOURCE_FILES} -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/build/_deps/spdlog-src/include -I${CMAKE_SOURCE_DIR}/includes -I${DISCORD_SDK_INCLUDE_DIR}
+            COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${CLANG_TIDY} -checks=${TIDY_CHECKS} ${SOURCE_FILES} -- -std=c++23 -I${CMAKE_SOURCE_DIR}/build/_deps/ftxui-src/include -I${CMAKE_SOURCE_DIR}/build/_deps/spdlog-src/include -I${CMAKE_SOURCE_DIR}/includes -I${DISCORD_SDK_INCLUDE_DIR}
             COMMENT "Running clang-tidy only"
             VERBATIM
     )

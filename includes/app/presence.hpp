@@ -44,7 +44,7 @@ class Presence {
   /// @param lobby_secret The lobby secret for the voice call
   /// @param on_success Callback to invoke when presence is set successfully
   void SetVoiceCallPresence(const std::string& lobby_secret,
-                            OnSuccessCallback on_success) const;
+                            const OnSuccessCallback& on_success) const;
 
  private:
   std::shared_ptr<discordpp::Client> client_;

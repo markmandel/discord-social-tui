@@ -55,7 +55,8 @@ void Voice::Call() {
         SPDLOG_INFO("Joined Lobby! {}", lobby_id);
 
         // Update rich presence for voice call
-        presence_->SetVoiceCallPresence(lobby_secret, [this, friend_, lobby_id] {
+        presence_->SetVoiceCallPresence(lobby_secret, [this, friend_,
+                                                       lobby_id] {
           // Send activity invite after presence is set
           client_->SendActivityInvite(
               friend_->GetId(), "Voice Call",
@@ -69,9 +70,14 @@ void Voice::Call() {
 
                 discordpp::Call call = client_->StartCall(lobby_id);
                 active_calls_.insert({friend_->GetId(), call});
-                call.SetParticipantChangedCallback([](uint64_t user_id, bool added) {
-                  SPDLOG_INFO("Participant Change: {}, added? {}", user_id, added);
-                });
+
+                // TODO: if the other person in the lobby drops, then disconnect
+                // the call automatically.
+                call.SetParticipantChangedCallback(
+                    [](uint64_t user_id, bool added) {
+                      SPDLOG_INFO("Participant Change: {}, added? {}", user_id,
+                                  added);
+                    });
 
                 OnChange();
               });
@@ -88,8 +94,18 @@ void Voice::Disconnect() {
         return GetCall(friend_->GetId())
             .and_then([this, friend_](const discordpp::Call& call)
                           -> std::optional<std::monostate> {
-              client_->EndCall(call.GetChannelId(), [this, friend_]() {
+              client_->EndCall(call.GetChannelId(), [this, call, friend_]() {
                 active_calls_.erase(friend_->GetId());
+                client_->LeaveLobby(
+                    call.GetChannelId(),
+                    [call](const discordpp::ClientResult& result) {
+                      if (result.Successful()) {
+                        SPDLOG_INFO("Left lobby: {}", call.GetChannelId());
+                      } else {
+                        SPDLOG_ERROR("Error leaving lobby: {}", result.Error());
+                      }
+                    });
+
                 presence_->SetDefaultPresence();
                 OnChange();
                 SPDLOG_INFO("Call ended successfully!");
@@ -103,12 +119,14 @@ void Voice::Disconnect() {
 void Voice::Run() {
   SPDLOG_INFO("Starting Voice Service...");
 
-  client_->SetLobbyMemberAddedCallback([](const uint64_t lobby_id, const uint64_t member_id) {
-    SPDLOG_INFO("LobbyMemberAddedCallback: {}, {}", lobby_id, member_id);
-  });
-  client_->SetLobbyMemberRemovedCallback([](const uint64_t lobby_id, const uint64_t member_id) {
-    SPDLOG_INFO("LobbyMemberRemovedCallback: {}, {}", lobby_id, member_id);
-  });
+  client_->SetLobbyMemberAddedCallback(
+      [](const uint64_t lobby_id, const uint64_t member_id) {
+        SPDLOG_INFO("LobbyMemberAddedCallback: {}, {}", lobby_id, member_id);
+      });
+  client_->SetLobbyMemberRemovedCallback(
+      [](const uint64_t lobby_id, const uint64_t member_id) {
+        SPDLOG_INFO("LobbyMemberRemovedCallback: {}, {}", lobby_id, member_id);
+      });
 
   client_->SetActivityInviteCreatedCallback(
       [&](const discordpp::ActivityInvite& invite) {
@@ -146,11 +164,12 @@ void Voice::Run() {
                         return;
                       }
                       friends_->GetFriendById(participants[0])
-                          .and_then([this, call](
+                          .and_then([this, lobby_secret, call](
                                         const std::shared_ptr<Friend>& friend_)
                                         -> std::optional<std::monostate> {
                             active_calls_.insert({friend_->GetId(), call});
-                            // TODO: update rich presence when you join a call.
+                            presence_->SetVoiceCallPresence(lobby_secret,
+                                                            [] {});
                             OnChange();
                             return std::monostate{};
                           });
@@ -159,9 +178,6 @@ void Voice::Run() {
         }
       });
 }
-
-// TODO: not quite sure how to do this, but if the other person in the lobby
-// drops, then disconnect the call automatically.
 
 void Voice::AddChangeHandler(std::function<void()> handler) {
   change_handlers_.push_back(std::move(handler));
