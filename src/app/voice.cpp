@@ -20,6 +20,8 @@
 
 namespace discord_social_tui {
 
+// TODO: should we make it so you can only make one call at a time?
+
 void Voice::Call() {
   const auto current_user = client_->GetCurrentUserV2();
   const auto selected_friend = friends_->GetSelectedFriend();
@@ -50,6 +52,8 @@ void Voice::Call() {
           return;
         }
 
+        SPDLOG_INFO("Joined Lobby! {}", lobby_id);
+
         // Update rich presence for voice call
         presence_->SetVoiceCallPresence(lobby_secret, [this, friend_, lobby_id] {
           // Send activity invite after presence is set
@@ -62,8 +66,13 @@ void Voice::Call() {
                   return;
                 }
                 SPDLOG_INFO("☎️ Voice Call successfully invited");
-                const discordpp::Call call = client_->StartCall(lobby_id);
+
+                discordpp::Call call = client_->StartCall(lobby_id);
                 active_calls_.insert({friend_->GetId(), call});
+                call.SetParticipantChangedCallback([](uint64_t user_id, bool added) {
+                  SPDLOG_INFO("Participant Change: {}, added? {}", user_id, added);
+                });
+
                 OnChange();
               });
         });
@@ -81,7 +90,7 @@ void Voice::Disconnect() {
                           -> std::optional<std::monostate> {
               client_->EndCall(call.GetChannelId(), [this, friend_]() {
                 active_calls_.erase(friend_->GetId());
-                // TODO: Update rich presence to turn off the call.
+                presence_->SetDefaultPresence();
                 OnChange();
                 SPDLOG_INFO("Call ended successfully!");
               });
@@ -93,6 +102,13 @@ void Voice::Disconnect() {
 
 void Voice::Run() {
   SPDLOG_INFO("Starting Voice Service...");
+
+  client_->SetLobbyMemberAddedCallback([](const uint64_t lobby_id, const uint64_t member_id) {
+    SPDLOG_INFO("LobbyMemberAddedCallback: {}, {}", lobby_id, member_id);
+  });
+  client_->SetLobbyMemberRemovedCallback([](const uint64_t lobby_id, const uint64_t member_id) {
+    SPDLOG_INFO("LobbyMemberRemovedCallback: {}, {}", lobby_id, member_id);
+  });
 
   client_->SetActivityInviteCreatedCallback(
       [&](const discordpp::ActivityInvite& invite) {
