@@ -50,49 +50,23 @@ void Voice::Call() {
           return;
         }
 
-        // Create activity and set properties
-        auto activity = discordpp::Activity();
-        activity.SetType(discordpp::ActivityTypes::Playing);
-        activity.SetDetails("Making a phone call...");
-        activity.SetSupportedPlatforms(
-            discordpp::ActivityGamePlatforms::Desktop);
-
-        // set name, state, party size ...
-        auto secrets = discordpp::ActivitySecrets();
-        secrets.SetJoin(lobby_secret);
-        activity.SetSecrets(secrets);
-
-        auto party = discordpp::ActivityParty();
-        party.SetId(lobby_secret);
-        party.SetCurrentSize(1);
-        party.SetMaxSize(2);
-        party.SetPrivacy(discordpp::ActivityPartyPrivacy::Private);
-        activity.SetParty(party);
-
-        client_->UpdateRichPresence(
-            activity,
-            [this, friend_, lobby_id](const discordpp::ClientResult& result) {
-              if (!result.Successful()) {
-                SPDLOG_ERROR("Failed to update rich presence: {}",
-                             result.Error());
-                return;
-              }
-
-              client_->SendActivityInvite(
-                  friend_->GetId(), "Voice Call",
-                  [this, friend_,
-                   lobby_id](const discordpp::ClientResult& result) {
-                    if (!result.Successful()) {
-                      SPDLOG_ERROR("Failed to send Voice Call invite: {}",
-                                   result.Error());
-                      return;
-                    }
-                    SPDLOG_INFO("☎️ Voice Call successfully invited");
-                    const discordpp::Call call = client_->StartCall(lobby_id);
-                    active_calls_.insert({friend_->GetId(), call});
-                    OnChange();
-                  });
-            });
+        // Update rich presence for voice call
+        presence_->SetVoiceCallPresence(lobby_secret, [this, friend_, lobby_id] {
+          // Send activity invite after presence is set
+          client_->SendActivityInvite(
+              friend_->GetId(), "Voice Call",
+              [this, friend_, lobby_id](const discordpp::ClientResult& result) {
+                if (!result.Successful()) {
+                  SPDLOG_ERROR("Failed to send Voice Call invite: {}",
+                               result.Error());
+                  return;
+                }
+                SPDLOG_INFO("☎️ Voice Call successfully invited");
+                const discordpp::Call call = client_->StartCall(lobby_id);
+                active_calls_.insert({friend_->GetId(), call});
+                OnChange();
+              });
+        });
       });
 }
 

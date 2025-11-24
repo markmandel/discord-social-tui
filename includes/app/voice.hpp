@@ -22,6 +22,7 @@
 
 #include "discordpp.h"
 #include "friend.hpp"
+#include "presence.hpp"
 
 namespace discord_social_tui {
 
@@ -29,8 +30,9 @@ static constexpr std::string VOICE_CALL_PREFIX = "call::";
 
 class Voice {
  public:
-  explicit Voice(const std::shared_ptr<discordpp::Client> &client)
-      : client_(client) {}
+  explicit Voice(const std::shared_ptr<discordpp::Client> &client,
+                 const std::shared_ptr<Presence> &presence)
+      : client_(client), presence_(presence) {}
 
   /// Set the Friends reference (used to break circular dependency)
   void SetFriends(const std::shared_ptr<Friends> &friends) {
@@ -51,6 +53,7 @@ class Voice {
 
  private:
   std::shared_ptr<discordpp::Client> client_;
+  std::shared_ptr<Presence> presence_;
   std::shared_ptr<Friends> friends_;
   std::unordered_map<u_int64_t, discordpp::Call> active_calls_;
   std::vector<std::function<void()>> change_handlers_;

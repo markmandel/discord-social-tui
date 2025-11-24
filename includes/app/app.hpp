@@ -20,6 +20,7 @@
 #include "app/buttons.hpp"
 #include "app/friend.hpp"
 #include "app/messages.hpp"
+#include "app/presence.hpp"
 #include "discordpp.h"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
@@ -47,6 +48,9 @@ class App {
   // Discord client
   std::shared_ptr<discordpp::Client> client_;
 
+  // Presence management
+  std::shared_ptr<Presence> presence_;
+
   // Voice calling (initialized before friends_)
   std::shared_ptr<Voice> voice_;
 
@@ -73,7 +77,6 @@ class App {
   void StartStatusChangedCallback();
   void Ready();
   void Authorize();
-  void Presence() const;
 };
 
 }  // namespace discord_social_tui

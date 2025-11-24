@@ -32,7 +32,8 @@ App::App(const uint64_t application_id,
          const std::shared_ptr<discordpp::Client>& client)
     : application_id_{application_id},
       client_{client},
-      voice_{std::make_shared<Voice>(client)},
+      presence_{std::make_shared<Presence>(client)},
+      voice_{std::make_shared<Voice>(client, presence_)},
       messages_{std::make_shared<Messages>(client)},
       friends_{std::make_shared<Friends>(client, messages_, voice_)},
       left_width_{LEFT_WIDTH},
@@ -134,30 +135,9 @@ void App::Ready() {
   // Hide the modal
   show_authenticating_modal_ = false;
   // Set up rich presence
-  Presence();
+  presence_->SetDefaultPresence();
   // initial load of friends
   friends_->Refresh();
-}
-
-// Set rich presence for the Discord client
-void App::Presence() const {
-  // Configure rich presence details
-  // TODO: Presence should be be it's own class just to handle presence tasks.
-  discordpp::Activity activity;
-  activity.SetType(discordpp::ActivityTypes::Playing);
-  activity.SetState("Discord on the Command Line");
-  activity.SetDetails("Better TUI than me...");
-
-  // Update rich presence
-  SPDLOG_INFO("Updating Discord rich presence...");
-  client_->UpdateRichPresence(
-      activity, [](const discordpp::ClientResult& result) {
-        if (result.Successful()) {
-          SPDLOG_INFO("Rich Presence updated successfully");
-        } else {
-          SPDLOG_ERROR("Rich Presence update failed: {}", result.Error());
-        }
-      });
 }
 
 void App::Authorize() {
