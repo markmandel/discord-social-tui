@@ -193,7 +193,7 @@ void StartDiscordLogging(const std::shared_ptr<discordpp::Client>& client) {
             break;
         }
       },
-      discordpp::LoggingSeverity::Info);
+      discordpp::LoggingSeverity::Verbose);
 }
 
 int main(const int argc, char* argv[]) {

@@ -134,6 +134,10 @@ void App::StartStatusChangedCallback() {
 void App::Ready() {
   // Hide the modal
   show_authenticating_modal_ = false;
+
+  // set client to 70%
+  client_->SetInputVolume(70);
+
   // Set up rich presence
   presence_->SetDefaultPresence();
   // initial load of friends
