@@ -218,11 +218,31 @@ void Messages::ResetSelectedUnreadMessages() {
 
 std::vector<discordpp::MessageHandle> Messages::GetMessages(
     const uint64_t user_id) {
-  if (user_messages_.contains(user_id)) {
-    return user_messages_[user_id];
+  if (!user_messages_.contains(user_id)) {
+    // Initialise empty vector to indicate we're fetching
+    user_messages_[user_id] = std::vector<discordpp::MessageHandle>();
+
+    // Fetch message history from Discord API
+    constexpr int32_t message_limit = 50;
+    client_->GetUserMessagesWithLimit(
+        user_id, message_limit,
+        [this, user_id](const discordpp::ClientResult& result,
+                        const std::vector<discordpp::MessageHandle>& messages) {
+          if (!result.Successful()) {
+            SPDLOG_ERROR("Failed to fetch message history for user {}: {}",
+                         user_id, result.Error());
+            return;
+          }
+
+          SPDLOG_INFO("Fetched {} historical messages for user {}",
+                      messages.size(), user_id);
+          user_messages_[user_id] = messages;
+        });
   }
-  return {};
+
+  return user_messages_[user_id];
 }
+
 bool Messages::HasUnreadMessages(const uint64_t user_id) const {
   if (!unread_messages_.contains(user_id)) {
     return false;
