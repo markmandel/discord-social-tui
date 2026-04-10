@@ -227,7 +227,7 @@ std::vector<discordpp::MessageHandle> Messages::GetMessages(
     client_->GetUserMessagesWithLimit(
         user_id, message_limit,
         [this, user_id](const discordpp::ClientResult& result,
-                        const std::vector<discordpp::MessageHandle>& messages) {
+                        std::vector<discordpp::MessageHandle> messages) {
           if (!result.Successful()) {
             SPDLOG_ERROR("Failed to fetch message history for user {}: {}",
                          user_id, result.Error());
@@ -236,6 +236,9 @@ std::vector<discordpp::MessageHandle> Messages::GetMessages(
 
           SPDLOG_INFO("Fetched {} historical messages for user {}",
                       messages.size(), user_id);
+          // reverse them, because we want them in reverse chronological.
+          std::reverse(messages.begin(), messages.end());
+
           user_messages_[user_id] = messages;
         });
   }
