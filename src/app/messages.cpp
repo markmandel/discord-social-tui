@@ -22,6 +22,10 @@
 
 namespace discord_social_tui {
 
+static constexpr auto MODERATION_ACTION_KEY = "action";
+static constexpr auto MODERATION_ACTION_REPlACE = "replace";
+static constexpr auto MODERATION_CONTENT_KEY = "content";
+
 Messages::Messages(const std::shared_ptr<discordpp::Client>& client)
     : client_(client) {
   // Initialize UI components
@@ -57,7 +61,7 @@ void Messages::SetFriends(const std::shared_ptr<Friends>& friends) {
 }
 
 void Messages::Run() {
-  client_->SetMessageCreatedCallback(
+  client_->SetMessageUpdatedCallback(
       [this](const uint64_t message_id) { AddUserMessage(message_id); });
 }
 
@@ -100,10 +104,16 @@ ftxui::Component Messages::Render() {
                   })
                   .value_or("<unknown>");
 
+          auto text = ftxui::text(message.Content());
+          // if we have a replacement action, replace the content
+          if (message.ModerationMetadata()[MODERATION_ACTION_KEY] == MODERATION_ACTION_REPlACE) {
+            text = ftxui::text(message.ModerationMetadata()[MODERATION_CONTENT_KEY]) | ftxui::color(ftxui::Color::Red);
+          }
+
           message_elements.push_back(
               ftxui::hbox({ftxui::text(author_name + ": ") |
                                ftxui::color(ftxui::Color::Cyan),
-                           ftxui::text(message.Content())}));
+                           text}));
         }
       }
     }
@@ -167,6 +177,11 @@ void Messages::AddUserMessage(const uint64_t message_id) {
 
         if (!current_user) {
           SPDLOG_ERROR("Current user not available");
+          return std::nullopt;
+        }
+
+        if (!message.ModerationMetadata().contains(MODERATION_ACTION_KEY)) {
+          SPDLOG_INFO("Message is not moderated, ignoring");
           return std::nullopt;
         }
 
